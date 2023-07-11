@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <title>K3D калибровщик откатов v1.4</title>
+  <script src="lib.js"></script>
+  <script src="wasm_exec.js"></script>
+  <script src="gwaloader.js"></script>
+  <link rel="stylesheet" href="rct_style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body onload="initForm()">
+  <h1>K3D калибровщик откатов v1.4</h1>
+  <p>Подробное описание работы вы можете прочитать в <a href="http://k3d.tech/retractions/">статье на основном
+      сайте.</a></p>
+  <p>Если сталкиваетесь с ошибкой "Move exceeds maximum extrusion", то вам <a href="http://k3d.tech/retractions/#move-exceeds-maximum-extrusion">сюда</a></p>
+  <table>
+    <tbody>
+      <tr>
+        <th>Параметр</th>
+        <th>Значение</th>
+        <th>Описание</th>
+      </tr>
+      <tr>
+        <td>Размер стола по X</td>
+        <td><input type="text" id="bedX" name="BedX" value="235"></td>
+        <td>[мм] Для декартовых принтеров - максимальная координата по оси X<br>Для дельта-принтеров - <b>диаметр стола</b></td>
+      </tr>
+      <tr>
+        <td>Размер стола по Y</td>
+        <td><input type="text" id="bedY" name="BedY" value="235"></td>
+        <td>[мм] Для декартовых принтеров - максимальная координата по оси Y<br>Для дельта-принтеров - <b>диаметр стола</b></td>
+      </tr>
+      <tr>
+        <td>Z-offset</td>
+        <td><input type="text" id="zOffset" name="zOffset" value="0.0"></td>
+        <td>[мм] Смещение всей модели по вертикали. Нужно чтобы компенсировать слишком тонкую/толстую калибровку первого слоя. В общем случае оставьте ноль</td>
+      </tr>
+      <tr>
+        <td>Начало координат в центре стола</td>
+        <td style="text-align:center"><input type="checkbox" id="delta" name="delta"></td>
+        <td>Для декартовых принтеров должно быть выключено, для дельт включено. На данный момент работа этого режима не
+          протестирована</td>
+      </tr>
+      <tr>
+        <td>Автокалибровка стола</td>
+        <td style="text-align:center"><input type="checkbox" id="bedProbe" name="bedProbe"></td>
+        <td>Надо ли делать автокалибровку стола перед печатью (G29)? Если у вас нет датчика автокалибровки, то оставляйте
+          выключенным</td>
+      </tr>
+      <tr>
+        <td>Температура хотэнда</td>
+        <td><input type="text" id="hotendTemperature" name="hotendTemperature" value="210"></td>
+        <td>[°C] Температура, до которой нагреть хотэнд перед печатью</td>
+      </tr>
+      <tr>
+        <td>Температура стола</td>
+        <td><input type="text" id="bedTemperature" name="bedTemperature" value="60"></td>
+        <td>[°C] Температура, до которой нагреть стол перед печатью. Стол будет нагрет до выполнения парковки и автокалибровки стола</td>
+      </tr>
+      <tr>
+        <td>Скорость вентилятора</td>
+        <td><input type="text" id="cooling" name="cooling" value="100"></td>
+        <td>[%] Обороты вентилятора в процентах. Для того, чтобы температура хотэнда резко не упала при включении вентилятора, на 1 слое он будет включен на 1/3 от заданного значения, на 2 слое на 2/3, на 4 слое на заданное значение</td>
+      </tr>
+      <tr>
+        <td>Ширина линии</td>
+        <td><input type="text" id="lineWidth" name="lineWidth" value="0.4"></td>
+        <td>[мм] Ширина линий, с которой будут напечатаны башенки. В общем случае рекомендуется выставить равной диаметру сопла</td>
+      </tr>
+      <tr>
+        <td>Ширина линии первого слоя</td>
+        <td><input type="text" id="firstLayerLineWidth" name="firstLayerLineWidth" value="0.6"></td>
+        <td>[мм] Ширина линий, с которой будет напечатана подложка под башенками. В общем случае рекомендуется выставить 150% от диаметра сопла</td>
+      </tr>
+      <tr>
+        <td>Толщина слоя</td>
+        <td><input type="text" id="layerHeight" name="layerHeight" value="0.25"></td>
+        <td>[мм] Толщина слоёв всей модели. В общем случае 50% от ширины линии</td>
+      </tr>
+      <tr>
+        <td>Скорость печати</td>
+        <td><input type="text" id="printSpeed" name="printSpeed" value="60"></td>
+        <td>[мм/с] Скорость, с которой будут напечатаны башенки</td>
+      </tr>
+      <tr>
+        <td>Скорость печати первого слоя</td>
+        <td><input type="text" id="firstLayerPrintSpeed" name="firstLayerPrintSpeed" value="30"></td>
+        <td>[мм/с] Скорость, с которой будет напечатана подложка под башенки</td>
+      </tr>
+      <tr>
+        <td>Скорость перемещений</td>
+        <td><input type="text" id="travelSpeed" name="travelSpeed" value="150"></td>
+        <td>[мм/с] Скорость перемещений между башенками</td>
+      </tr>
+      <tr>
+        <td>Начальная длина отката</td>
+        <td><input type="text" id="initRetractLength" name="initRetractLength" value="1.0"></td>
+        <td>[мм] Длина отката, с которой будет напечатан нижний сегмент</td>
+      </tr>
+      <tr>
+        <td>Конечная длина отката</td>
+        <td><input type="text" id="endRetractLength" name="endRetractLength" value="0.2"></td>
+        <td>[мм] Длина отката, с которой будет напечатан верхний сегмент. Между нижним и верхним сегментом длина отката
+          будет изменяться ступенчато за каждый сегмент. Если хотите, чтобы длина отката не менялась, то укажите такое
+          же значение, как начальное</td>
+      </tr>
+      <tr>
+        <td>Начальная скорость отката</td>
+        <td><input type="text" id="initRetractSpeed" name="initRetractSpeed" value="30"></td>
+        <td>[мм/с] Скорость, с которой будут выполняться откаты</td>
+      </tr>
+      <tr>
+        <td>Конечная скорость отката</td>
+        <td><input type="text" id="endRetractSpeed" name="endRetractSpeed" value="30"></td>
+        <td>[мм/с] Скорость отката, с которой будет напечатан верхний сегмент. Между нижним и верхним сегментом скорость отката будет изменяться ступенчато за каждый сегмент. Если хотите, чтобы скорость отката не менялась, то укажите такое же значение, как начальное</td>
+      </tr>
+      <tr>
+        <td>Количество сегментов</td>
+        <td><input type="text" id="numSegments" name="numSegments" value="10"></td>
+        <td>Количество сегментов башенки. В течение сегмента длина и скорость отката остаются неизменными. Сегменты визуально разделены для упрощения анализа модели</td>
+      </tr>
+      <tr>
+        <td>Высота сегмента</td>
+        <td><input type="text" id="segmentHeight" name="segmentHeight" value="3"></td>
+        <td>[мм] Высота одного сегмента башенки. К примеру, если высота сегмента 3мм, а количество сегментов 10, то
+          высота всей башенки будет 30мм</td>
+      </tr>
+      <tr>
+        <td>k-фактор Linear Advance</td>
+        <td><input type="text" id="kFactor" name="kFactor" value="M900 K0.0"></td>
+        <td>Впишите команду, которую ваша прошивка использует для выставления k-фактора Linear/Pressure Advance<br>
+          Для Marlin 'M900 K(значение)'<br>
+          Для Klipper 'SET_PRESSURE_ADVANCE ADVANCE=(значение)'<br>
+          Для RRF 'M572 D0 S(значение)'<br>
+          Если вы не пользуетесь Linear/Pressure Advance, то очистите поле или оставьте значение нулевым
+        </td>
+      </tr>
+      <tr>
+        <td>Расстояние между башенками</td>
+        <td><input type="text" id="towerSpacing" name="towerSpacing" value="100"></td>
+        <td>[мм] Для проверки откатов, обычно, хватает около 100 мм. Для крупногабаритных принтеров, которые часто
+          печатают большие модели, рекомендуется около половины длины большей стороны стола</td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="button-section">
+    <button class="generate-button" onclick="generate();" id="generateButton" style="display:none">Генерировать и
+      скачать</button>
+    <p id="generateButtonLoading"> Генератор загружается...</p>
+    <div id="resultContainer"></div>
+  </div>
+  <footer>
+    <nav class="navbar">
+      <a href="./index.html" class="navbar-back" aria-label="Назад: Сайт">
+        <div class="navbar-icon"><svg class="navbar-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"></path>
+          </svg></div>
+        <div class="navbar-title">
+          <div class="navbar-ellipsis">
+            <span class="navbar-direction"> Назад </span>
+            Сайт
+          </div>
+        </div>
+      </a>
+    </nav>
+    <div class="footer-meta">
+      <div class="footer-meta-inner">
+        <div class="copyright">
+          Written by Dmitry Sorkin and Kekht<br>
+          Copyright © 2022
+        </div>
+        <div class="social">
+          <a href="https://t.me/vostok3dp" target="_blank" rel="noopener" title="t.me" class="social-link">
+            <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path d="M248 8C111.033 8 0 119.033 0 256s111.033 248 248 248 248-111.033 248-248S384.967 8 248 8Zm114.952 168.66c-3.732 39.215-19.881 134.378-28.1 178.3-3.476 18.584-10.322 24.816-16.948 25.425-14.4 1.326-25.338-9.517-39.287-18.661-21.827-14.308-34.158-23.215-55.346-37.177-24.485-16.135-8.612-25 5.342-39.5 3.652-3.793 67.107-61.51 68.335-66.746.153-.655.3-3.1-1.154-4.384s-3.59-.849-5.135-.5q-3.283.746-104.608 69.142-14.845 10.194-26.894 9.934c-8.855-.191-25.888-5.006-38.551-9.123-15.531-5.048-27.875-7.717-26.8-16.291q.84-6.7 18.45-13.7 108.446-47.248 144.628-62.3c68.872-28.647 83.183-33.623 92.511-33.789 2.052-.034 6.639.474 9.61 2.885a10.452 10.452 0 0 1 3.53 6.716 43.765 43.765 0 0 1 .417 9.769Z"></path></svg>
+          </a>
+          <a href="https://www.youtube.com/c/SorkinDmitry" target="_blank" rel="noopener" title="www.youtube.com" class="social-link">
+            <svg class="social-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m10 15 5.19-3L10 9v6m11.56-7.83c.13.47.22 1.1.28 1.9.07.8.1 1.49.1 2.09L22 12c0 2.19-.16 3.8-.44 4.83-.25.9-.83 1.48-1.73 1.73-.47.13-1.33.22-2.65.28-1.3.07-2.49.1-3.59.1L12 19c-4.19 0-6.8-.16-7.83-.44-.9-.25-1.48-.83-1.73-1.73-.13-.47-.22-1.1-.28-1.9-.07-.8-.1-1.49-.1-2.09L2 12c0-2.19.16-3.8.44-4.83.25-.9.83-1.48 1.73-1.73.47-.13 1.33-.22 2.65-.28 1.3-.07 2.49-.1 3.59-.1L12 5c4.19 0 6.8.16 7.83.44.9.25 1.48.83 1.73 1.73Z"></path></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>
