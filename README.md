@@ -3,6 +3,10 @@
 Simple retraction towers generator for retraction calibration written in golang. Hosted [>here<](https://k3d.tech/calibrations/retractions/rct.html?lang=en). 
 The author is not a professional programmer. The code is terrible. When reading the code, avoid psychological trauma.
 
+# Building
+
+Install golang and then simply run build.bat/build.sh, it should generate WASM file.
+
 ------
 
 ## TODO
