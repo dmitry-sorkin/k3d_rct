@@ -86,6 +86,11 @@ button.generate-button {
     margin-bottom: 20px;
 }
 
+button.reset-button {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
 button:disabled {
     border-bottom-color: rgba(255, 255, 255, 0.5);
     border-top-color: rgba(255, 255, 255, 0.5);

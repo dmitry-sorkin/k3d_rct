@@ -175,6 +175,7 @@ function initLang(key) {
 			values['generator.generate_and_download'] = 'Generate and download';		
 			values['generator.generate_button_loading'] = 'Generator loading...';		
 			values['generator.segment'] = ';Segment %d:   %smm @ %smm/s\n';
+			values['generator.reset_to_default'] = 'Reset settings';
 			
 			values['navbar.back'] = ' Back ';
 			values['navbar.site'] = 'Site';
@@ -283,6 +284,7 @@ function initLang(key) {
 			values['generator.generate_and_download'] = 'Генерировать и скачать';		
 			values['generator.generate_button_loading'] = 'Генератор загружается...';		
 			values['generator.segment'] = ';Сегмент %d:   %sмм @ %sмм/с\n';
+			values['generator.reset_to_default'] = 'Сбросить настройки';
 			
 			values['navbar.back'] = ' Назад ';
 			values['navbar.site'] = 'Сайт';
@@ -338,8 +340,17 @@ function initLang(key) {
 		item.innerHTML = window.lang.getString(item.id);
 	}
 	document.getElementsByClassName('generate-button')[0].innerHTML = window.lang.getString('generator.generate_and_download');
+	document.getElementsByClassName('reset-button')[0].innerHTML = window.lang.getString('generator.reset_to_default');
 	document.getElementsByClassName('navbar-direction')[0].innerHTML = window.lang.getString('navbar.back');
 	document.getElementById('generateButtonLoading').innerHTML = window.lang.getString('generator.generate_button_loading');
+}
+
+function reset() {
+	for (var elementId of formFields) {
+        localStorage.removeItem(elementId);
+    }
+	
+	window.location.reload(false);
 }
 
 function init() {
