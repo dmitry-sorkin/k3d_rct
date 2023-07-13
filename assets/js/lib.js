@@ -122,7 +122,7 @@ function initLang(key) {
 	var values = window.lang.values;
 	switch (key) {
 		case 'en':
-			values['header.title'] = 'K3D retractions calibrator v1.5';
+			values['header.title'] = 'K3D retractions calibrator v1.6';
 			values['header.description'] = 'You can read a detailed description of the work in <a href="http://k3d.tech/calibrations/retractions/">the article on the main site</a>.';
 			values['header.move_exceeds'] = 'If you encounter with error "Move exceeds maximum extrusion", then check <a href="http://k3d.tech/calibrations/retractions/#move-exceeds-maximum-extrusion">here</a>';
 			values['header.language'] = 'Language: ';
