@@ -3,137 +3,138 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>K3D калибровщик откатов v1.4</title>
-  <script src="lib.js"></script>
-  <script src="wasm_exec.js"></script>
-  <script src="gwaloader.js"></script>
-  <link rel="stylesheet" href="rct_style.css">
+  <title>K3D калибровщик откатов v1.5</title>
+  <script src="assets/js/lib.js"></script>
+  <script src="assets/js/wasm_exec.js"></script>
+  <script src="assets/js/gwaloader.js"></script>
+  <link rel="stylesheet" href="assets/css/rct_style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700&display=swap" rel="stylesheet">
 </head>
 
-<body onload="initForm()">
-  <h1>K3D калибровщик откатов v1.4</h1>
-  <p>Подробное описание работы вы можете прочитать в <a href="http://k3d.tech/retractions/">статье на основном
+<body onload="init()">
+  <h1 class="lang" id="header.title">K3D калибровщик откатов v1.5</h1>
+  <p class="lang" id="header.description">Подробное описание работы вы можете прочитать в <a href="http://k3d.tech/retractions/">статье на основном
       сайте.</a></p>
-  <p>Если сталкиваетесь с ошибкой "Move exceeds maximum extrusion", то вам <a href="http://k3d.tech/retractions/#move-exceeds-maximum-extrusion">сюда</a></p>
+  <p class="lang" id="header.move_exceeds">Если сталкиваетесь с ошибкой "Move exceeds maximum extrusion", то вам <a href="http://k3d.tech/retractions/#move-exceeds-maximum-extrusion">сюда</a></p>
+  <p class="lang" id="header.language">Язык:</p><p><a href="rct.html?lang=en">English</a> <a href="rct.html?lang=ru">Русский</a></p>
   <table>
     <tbody>
       <tr>
-        <th>Параметр</th>
-        <th>Значение</th>
-        <th>Описание</th>
+        <th class="lang" id="table.header.parameter">Параметр</th>
+        <th class="lang" id="table.header.value">Значение</th>
+        <th class="lang" id="table.header.description">Описание</th>
       </tr>
       <tr>
-        <td>Размер стола по X</td>
+        <td class="lang" id="table.bed_size_x.title">Размер стола по X</td>
         <td><input type="text" id="bedX" name="BedX" value="235"></td>
-        <td>[мм] Для декартовых принтеров - максимальная координата по оси X<br>Для дельта-принтеров - <b>диаметр стола</b></td>
+        <td class="lang" id="table.bed_size_x.description">[мм] Для декартовых принтеров - максимальная координата по оси X<br>Для дельта-принтеров - <b>диаметр стола</b></td>
       </tr>
       <tr>
-        <td>Размер стола по Y</td>
+        <td class="lang" id="table.bed_size_y.title">Размер стола по Y</td>
         <td><input type="text" id="bedY" name="BedY" value="235"></td>
-        <td>[мм] Для декартовых принтеров - максимальная координата по оси Y<br>Для дельта-принтеров - <b>диаметр стола</b></td>
+        <td class="lang" id="table.bed_size_y.description">[мм] Для декартовых принтеров - максимальная координата по оси Y<br>Для дельта-принтеров - <b>диаметр стола</b></td>
       </tr>
       <tr>
-        <td>Z-offset</td>
+        <td class="lang" id="table.z_offset.title">Z-offset</td>
         <td><input type="text" id="zOffset" name="zOffset" value="0.0"></td>
-        <td>[мм] Смещение всей модели по вертикали. Нужно чтобы компенсировать слишком тонкую/толстую калибровку первого слоя. В общем случае оставьте ноль</td>
+        <td class="lang" id="table.z_offset.description">[мм] Смещение всей модели по вертикали. Нужно чтобы компенсировать слишком тонкую/толстую калибровку первого слоя. В общем случае оставьте ноль</td>
       </tr>
       <tr>
-        <td>Начало координат в центре стола</td>
+        <td class="lang" id="table.delta.title">Начало координат в центре стола</td>
         <td style="text-align:center"><input type="checkbox" id="delta" name="delta"></td>
-        <td>Для декартовых принтеров должно быть выключено, для дельт включено. На данный момент работа этого режима не
+        <td class="lang" id="table.delta.description">Для декартовых принтеров должно быть выключено, для дельт включено. На данный момент работа этого режима не
           протестирована</td>
       </tr>
       <tr>
-        <td>Автокалибровка стола</td>
+        <td class="lang" id="table.bed_probe.title">Автокалибровка стола</td>
         <td style="text-align:center"><input type="checkbox" id="bedProbe" name="bedProbe"></td>
-        <td>Надо ли делать автокалибровку стола перед печатью (G29)? Если у вас нет датчика автокалибровки, то оставляйте
+        <td class="lang" id="table.bed_probe.description">Надо ли делать автокалибровку стола перед печатью (G29)? Если у вас нет датчика автокалибровки, то оставляйте
           выключенным</td>
       </tr>
       <tr>
-        <td>Температура хотэнда</td>
+        <td class="lang" id="table.hotend_temp.title">Температура хотэнда</td>
         <td><input type="text" id="hotendTemperature" name="hotendTemperature" value="210"></td>
-        <td>[°C] Температура, до которой нагреть хотэнд перед печатью</td>
+        <td class="lang" id="table.hotend_temp.description">[°C] Температура, до которой нагреть хотэнд перед печатью</td>
       </tr>
       <tr>
-        <td>Температура стола</td>
+        <td class="lang" id="table.bed_temp.title">Температура стола</td>
         <td><input type="text" id="bedTemperature" name="bedTemperature" value="60"></td>
-        <td>[°C] Температура, до которой нагреть стол перед печатью. Стол будет нагрет до выполнения парковки и автокалибровки стола</td>
+        <td class="lang" id="table.bed_temp.description">[°C] Температура, до которой нагреть стол перед печатью. Стол будет нагрет до выполнения парковки и автокалибровки стола</td>
       </tr>
       <tr>
-        <td>Скорость вентилятора</td>
+        <td class="lang" id="table.fan_speed.title">Скорость вентилятора</td>
         <td><input type="text" id="cooling" name="cooling" value="100"></td>
-        <td>[%] Обороты вентилятора в процентах. Для того, чтобы температура хотэнда резко не упала при включении вентилятора, на 1 слое он будет включен на 1/3 от заданного значения, на 2 слое на 2/3, на 4 слое на заданное значение</td>
+        <td class="lang" id="table.fan_speed.description">[%] Обороты вентилятора в процентах. Для того, чтобы температура хотэнда резко не упала при включении вентилятора, на 1 слое он будет включен на 1/3 от заданного значения, на 2 слое на 2/3, на 4 слое на заданное значение</td>
       </tr>
       <tr>
-        <td>Ширина линии</td>
+        <td class="lang" id="table.line_width.title">Ширина линии</td>
         <td><input type="text" id="lineWidth" name="lineWidth" value="0.4"></td>
-        <td>[мм] Ширина линий, с которой будут напечатаны башенки. В общем случае рекомендуется выставить равной диаметру сопла</td>
+        <td class="lang" id="table.line_width.description">[мм] Ширина линий, с которой будут напечатаны башенки. В общем случае рекомендуется выставить равной диаметру сопла</td>
       </tr>
       <tr>
-        <td>Ширина линии первого слоя</td>
+        <td class="lang" id="table.first_line_width.title">Ширина линии первого слоя</td>
         <td><input type="text" id="firstLayerLineWidth" name="firstLayerLineWidth" value="0.6"></td>
-        <td>[мм] Ширина линий, с которой будет напечатана подложка под башенками. В общем случае рекомендуется выставить 150% от диаметра сопла</td>
+        <td class="lang" id="table.first_line_width.description">[мм] Ширина линий, с которой будет напечатана подложка под башенками. В общем случае рекомендуется выставить 150% от диаметра сопла</td>
       </tr>
       <tr>
-        <td>Толщина слоя</td>
+        <td class="lang" id="table.layer_height.title">Толщина слоя</td>
         <td><input type="text" id="layerHeight" name="layerHeight" value="0.25"></td>
-        <td>[мм] Толщина слоёв всей модели. В общем случае 50% от ширины линии</td>
+        <td class="lang" id="table.layer_height.description">[мм] Толщина слоёв всей модели. В общем случае 50% от ширины линии</td>
       </tr>
       <tr>
-        <td>Скорость печати</td>
+        <td class="lang" id="table.print_speed.title">Скорость печати</td>
         <td><input type="text" id="printSpeed" name="printSpeed" value="60"></td>
-        <td>[мм/с] Скорость, с которой будут напечатаны башенки</td>
+        <td class="lang" id="table.print_speed.description">[мм/с] Скорость, с которой будут напечатаны башенки</td>
       </tr>
       <tr>
-        <td>Скорость печати первого слоя</td>
+        <td class="lang" id="table.first_print_speed.title">Скорость печати первого слоя</td>
         <td><input type="text" id="firstLayerPrintSpeed" name="firstLayerPrintSpeed" value="30"></td>
-        <td>[мм/с] Скорость, с которой будет напечатана подложка под башенки</td>
+        <td class="lang" id="table.first_print_speed.description">[мм/с] Скорость, с которой будет напечатана подложка под башенки</td>
       </tr>
       <tr>
-        <td>Скорость перемещений</td>
+        <td class="lang" id="table.travel_speed.title">Скорость перемещений</td>
         <td><input type="text" id="travelSpeed" name="travelSpeed" value="150"></td>
-        <td>[мм/с] Скорость перемещений между башенками</td>
+        <td class="lang" id="table.travel_speed.description">[мм/с] Скорость перемещений между башенками</td>
       </tr>
       <tr>
-        <td>Начальная длина отката</td>
+        <td class="lang" id="table.init_retract_length.title">Начальная длина отката</td>
         <td><input type="text" id="initRetractLength" name="initRetractLength" value="1.0"></td>
-        <td>[мм] Длина отката, с которой будет напечатан нижний сегмент</td>
+        <td class="lang" id="table.init_retract_length.description">[мм] Длина отката, с которой будет напечатан нижний сегмент</td>
       </tr>
       <tr>
-        <td>Конечная длина отката</td>
+        <td class="lang" id="table.end_retract_length.title">Конечная длина отката</td>
         <td><input type="text" id="endRetractLength" name="endRetractLength" value="0.2"></td>
-        <td>[мм] Длина отката, с которой будет напечатан верхний сегмент. Между нижним и верхним сегментом длина отката
+        <td class="lang" id="table.end_retract_length.description">[мм] Длина отката, с которой будет напечатан верхний сегмент. Между нижним и верхним сегментом длина отката
           будет изменяться ступенчато за каждый сегмент. Если хотите, чтобы длина отката не менялась, то укажите такое
           же значение, как начальное</td>
       </tr>
       <tr>
-        <td>Начальная скорость отката</td>
+        <td class="lang" id="table.init_retract_speed.title">Начальная скорость отката</td>
         <td><input type="text" id="initRetractSpeed" name="initRetractSpeed" value="30"></td>
-        <td>[мм/с] Скорость, с которой будут выполняться откаты</td>
+        <td class="lang" id="table.init_retract_speed.description">[мм/с] Скорость, с которой будут выполняться откаты</td>
       </tr>
       <tr>
-        <td>Конечная скорость отката</td>
+        <td class="lang" id="table.end_retract_speed.title">Конечная скорость отката</td>
         <td><input type="text" id="endRetractSpeed" name="endRetractSpeed" value="30"></td>
-        <td>[мм/с] Скорость отката, с которой будет напечатан верхний сегмент. Между нижним и верхним сегментом скорость отката будет изменяться ступенчато за каждый сегмент. Если хотите, чтобы скорость отката не менялась, то укажите такое же значение, как начальное</td>
+        <td class="lang" id="table.end_retract_speed.description">[мм/с] Скорость отката, с которой будет напечатан верхний сегмент. Между нижним и верхним сегментом скорость отката будет изменяться ступенчато за каждый сегмент. Если хотите, чтобы скорость отката не менялась, то укажите такое же значение, как начальное</td>
       </tr>
       <tr>
-        <td>Количество сегментов</td>
+        <td class="lang" id="table.num_segments.title">Количество сегментов</td>
         <td><input type="text" id="numSegments" name="numSegments" value="10"></td>
-        <td>Количество сегментов башенки. В течение сегмента длина и скорость отката остаются неизменными. Сегменты визуально разделены для упрощения анализа модели</td>
+        <td class="lang" id="table.num_segments.description">Количество сегментов башенки. В течение сегмента длина и скорость отката остаются неизменными. Сегменты визуально разделены для упрощения анализа модели</td>
       </tr>
       <tr>
-        <td>Высота сегмента</td>
+        <td class="lang" id="table.segment_height.title">Высота сегмента</td>
         <td><input type="text" id="segmentHeight" name="segmentHeight" value="3"></td>
-        <td>[мм] Высота одного сегмента башенки. К примеру, если высота сегмента 3мм, а количество сегментов 10, то
+        <td class="lang" id="table.segment_height.description">[мм] Высота одного сегмента башенки. К примеру, если высота сегмента 3мм, а количество сегментов 10, то
           высота всей башенки будет 30мм</td>
       </tr>
       <tr>
-        <td>k-фактор Linear Advance</td>
+        <td class="lang" id="table.k_factor.title">k-фактор Linear Advance</td>
         <td><input type="text" id="kFactor" name="kFactor" value="M900 K0.0"></td>
-        <td>Впишите команду, которую ваша прошивка использует для выставления k-фактора Linear/Pressure Advance<br>
+        <td class="lang" id="table.k_factor.description">Впишите команду, которую ваша прошивка использует для выставления k-фактора Linear/Pressure Advance<br>
           Для Marlin 'M900 K(значение)'<br>
           Для Klipper 'SET_PRESSURE_ADVANCE ADVANCE=(значение)'<br>
           Для RRF 'M572 D0 S(значение)'<br>
@@ -141,9 +142,9 @@
         </td>
       </tr>
       <tr>
-        <td>Расстояние между башенками</td>
+        <td class="lang" id="table.tower_spacing.title">Расстояние между башенками</td>
         <td><input type="text" id="towerSpacing" name="towerSpacing" value="100"></td>
-        <td>[мм] Для проверки откатов, обычно, хватает около 100 мм. Для крупногабаритных принтеров, которые часто
+        <td class="lang" id="table.tower_spacing.description">[мм] Для проверки откатов, обычно, хватает около 100 мм. Для крупногабаритных принтеров, которые часто
           печатают большие модели, рекомендуется около половины длины большей стороны стола</td>
       </tr>
     </tbody>
@@ -163,7 +164,7 @@
         <div class="navbar-title">
           <div class="navbar-ellipsis">
             <span class="navbar-direction"> Назад </span>
-            Сайт
+            <span class="lang" id="navbar.site">Сайт</span>
           </div>
         </div>
       </a>

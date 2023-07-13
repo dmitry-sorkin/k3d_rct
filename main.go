@@ -38,23 +38,24 @@ func registerFunctions() {
 func check() bool {
 	errorString := ""
 	doc := js.Global().Get("document")
+	lang := js.Global().Get("lang")
 	doc.Call("getElementById", "resultContainer").Set("innerHTML", "")
 
 	// Fill variables with data from web page
 	docBedX, err := parseInputToFloat(doc.Call("getElementById", "bedX").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Размер оси Х - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.bed_size_x.format").String() + "\n"
 	} else if docBedX < 100 || docBedX > 1000 {
-		errorString = errorString + "Размер стола по X указан неверно (меньше 100 или больше 1000 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.bed_size_x.small_or_big").String() + "\n"
 	} else {
 		bedX = docBedX
 	}
 
 	docBedY, err := parseInputToFloat(doc.Call("getElementById", "bedY").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Размер оси Y - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.bed_size_y.format").String() + "\n"
 	} else if docBedY < 100 || docBedY > 1000 {
-		errorString = errorString + "Размер стола по Y указан неверно (меньше 100 или больше 1000 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.bed_size_y.small_or_big").String() + "\n"
 	} else {
 		bedY = docBedY
 	}
@@ -65,27 +66,27 @@ func check() bool {
 
 	docHotTemp, err := parseInputToInt(doc.Call("getElementById", "hotendTemperature").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Температура хотэнда - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.hotend_temp.format").String() + "\n"
 	} else if docHotTemp < 150 {
-		errorString = errorString + "Температура хотэнда слишком низкая\n"
+		errorString = errorString + lang.Call("getString", "error.hotend_temp.too_low").String() + "\n"
 	} else if docHotTemp > 350 {
-		errorString = errorString + "Температура хотэнда слишком высокая\n"
+		errorString = errorString + lang.Call("getString", "error.hotend_temp.too_high").String() + "\n"
 	} else {
 		hotendTemperature = docHotTemp
 	}
 
 	docBedTemp, err := parseInputToInt(doc.Call("getElementById", "bedTemperature").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Температура стола - ошибка формата: " + err.Error()
+		errorString = errorString + lang.Call("getString", "error.bed_temp.format").String() + err.Error()
 	} else if docBedTemp > 150 {
-		errorString = errorString + "Температура стола слишком высокая\n"
+		errorString = errorString + lang.Call("getString", "error.bed_temp.too_high").String() + "\n"
 	} else {
 		bedTemperature = docBedTemp
 	}
 
 	docCooling, err := parseInputToInt(doc.Call("getElementById", "cooling").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Скорость вентилятора - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.fan_speed.format").String() + "\n"
 	} else {
 		docCooling = int(float64(docCooling) * 2.55)
 		if docCooling < 0 {
@@ -98,72 +99,72 @@ func check() bool {
 
 	docLineWidth, err := parseInputToFloat(doc.Call("getElementById", "lineWidth").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Ширина линии - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.line_width.format").String() + "\n"
 	} else if docLineWidth < 0.1 || docLineWidth > 2.0 {
-		errorString = errorString + "Неправильная ширина линии (меньше 0.1 или больше 2.0 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.line_width.small_or_big").String() + "\n"
 	} else {
 		lineWidth = docLineWidth
 	}
 
 	docFirstLineWidth, err := parseInputToFloat(doc.Call("getElementById", "firstLayerLineWidth").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Ширина линии первого слоя - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.first_line_width.format").String() + "\n"
 	} else if docFirstLineWidth < 0.1 || docFirstLineWidth > 2.0 {
-		errorString = errorString + "Неправильная ширина линии первого слоя (меньше 0.1 или больше 2.0 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.first_line_width.small_or_big").String() + "\n"
 	} else {
 		firstLayerLineWidth = docFirstLineWidth
 	}
 
 	docLayerHeight, err := parseInputToFloat(doc.Call("getElementById", "layerHeight").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Высота слоя - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.layer_height.format").String() + "\n"
 	} else if docLayerHeight < 0.05 || docLayerHeight > lineWidth*0.75 {
-		errorString = errorString + "Толщина слоя неправильная (меньше 0.05 мм или больше 75% от ширины линии)\n"
+		errorString = errorString + lang.Call("getString", "error.layer_height.small_or_big").String() + "\n"
 	} else {
 		layerHeight = docLayerHeight
 	}
 
 	docPrintSpeed, err := parseInputToFloat(doc.Call("getElementById", "printSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Скорость печати - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.print_speed.format").String() + "\n"
 	} else if docPrintSpeed < 10 || docPrintSpeed > 1000 {
-		errorString = errorString + "Скорость печати неправильная (меньше 10 или больше 1000 мм/с)\n"
+		errorString = errorString + lang.Call("getString", "error.print_speed.slow_or_fast").String() + "\n"
 	} else {
 		printSpeed = docPrintSpeed
 	}
 
 	docFirstPrintSpeed, err := parseInputToFloat(doc.Call("getElementById", "firstLayerPrintSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Скорость печати первого слоя - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.first_print_speed.format").String() + "\n"
 	} else if docFirstPrintSpeed < 10 || docFirstPrintSpeed > 1000 {
-		errorString = errorString + "Скорость печати первого слоя неправильная (меньше 10 или больше 1000 мм/с)\n"
+		errorString = errorString + lang.Call("getString", "error.first_print_speed.slow_or_fast").String() + "\n"
 	} else {
 		firstLayerPrintSpeed = docFirstPrintSpeed
 	}
 
 	docTravelSpeed, err := parseInputToFloat(doc.Call("getElementById", "travelSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Скорость перемещений - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.travel_speed.format").String() + "\n"
 	} else if docTravelSpeed < 10 || docTravelSpeed > 1000 {
-		errorString = errorString + "Скорость перемещений неправильная (меньше 10 или больше 1000 мм/с)\n"
+		errorString = errorString + lang.Call("getString", "error.travel_speed.slow_or_fast").String() + "\n"
 	} else {
 		travelSpeed = docTravelSpeed
 	}
 
 	docNumSegments, err := parseInputToInt(doc.Call("getElementById", "numSegments").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Количество сегментов - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.num_segments.format").String() + "\n"
 	} else if docNumSegments < 2 || docNumSegments > 100 {
-		errorString = errorString + "Количество сегментов неправильное (меньше 2 или больше 100)\n"
+		errorString = errorString + lang.Call("getString", "error.num_segments.slow_or_fast").String() + "\n"
 	} else {
 		numSegments = docNumSegments
 	}
 
 	docInitRetractLength, err := parseInputToFloat(doc.Call("getElementById", "initRetractLength").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Начальная длина отката - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.init_retract_length.format").String() + "\n"
 	} else if docInitRetractLength < 0 || docInitRetractLength > 20 {
-		errorString = errorString + "Начальная длина отката неправильная (меньше 0 или больше 20 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.init_retract_length.small_or_big").String() + "\n"
 	} else {
 		retractLength = docInitRetractLength
 		initRetractLength = docInitRetractLength
@@ -171,18 +172,18 @@ func check() bool {
 
 	docEndRetractLength, err := parseInputToFloat(doc.Call("getElementById", "endRetractLength").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Конечная длина отката - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.end_retract_length.format").String() + "\n"
 	} else if docEndRetractLength < 0 || docEndRetractLength > 20 {
-		errorString = errorString + "Конечная длина отката неправильная (меньше	0 или больше 20 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.end_retract_length.small_or_big").String() + "\n"
 	} else {
 		retractLengthDelta = (docInitRetractLength - docEndRetractLength) / float64(numSegments-1)
 	}
 
 	docRetractSpeed, err := parseInputToFloat(doc.Call("getElementById", "initRetractSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Начальная скорость отката - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.init_retract_speed.format").String() + "\n"
 	} else if docRetractSpeed < 5 || docRetractSpeed > 150 {
-		errorString = errorString + "Начальная скорость отката неправильная (меньше 5 или больше 150 мм/с)\n"
+		errorString = errorString + lang.Call("getString", "error.init_retract_speed.slow_or_fast").String() + "\n"
 	} else {
 		retractSpeed = docRetractSpeed
 		initRetractSpeed = docRetractSpeed
@@ -190,18 +191,18 @@ func check() bool {
 
 	docEndRetractSpeed, err := parseInputToFloat(doc.Call("getElementById", "endRetractSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Конечная длина отката - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.end_retract_speed.format").String() + "\n"
 	} else if docEndRetractSpeed < 5 || docEndRetractSpeed > 150 {
-		errorString = errorString + "Конечная скорость отката неправильная (меньше 5 или больше 150 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.end_retract_speed.slow_or_fast").String() + "\n"
 	} else {
 		retractSpeedDelta = (docRetractSpeed - docEndRetractSpeed) / float64(numSegments-1)
 	}
 
 	docSegmentHeight, err := parseInputToFloat(doc.Call("getElementById", "segmentHeight").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Высота сегмента - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.segment_height.format").String() + "\n"
 	} else if docSegmentHeight < 0.5 || docSegmentHeight > 20 {
-		errorString = errorString + "Высота сегмента неправильная (меньше 0.5 или больше 20 мм)\n"
+		errorString = errorString + lang.Call("getString", "error.segment_height.small_or_big").String() + "\n"
 	} else {
 		segmentHeight = docSegmentHeight
 	}
@@ -210,20 +211,20 @@ func check() bool {
 
 	docTowerSpacing, err := parseInputToFloat(doc.Call("getElementById", "towerSpacing").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Расстояние между башенками - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.tower_spacing.format").String() + "\n"
 	} else if docTowerSpacing < 40 {
-		errorString = errorString + "Расстояние между башенками слишком мало\n"
+		errorString = errorString + lang.Call("getString", "error.tower_spacing.too_small").String() + "\n"
 	} else if docTowerSpacing > bedX-40.0 {
-		errorString = errorString + "Расстояние между башенками слишком велико\n"
+		errorString = errorString + lang.Call("getString", "error.tower_spacing.too_big").String() + "\n"
 	} else {
 		towerSpacing = docTowerSpacing
 	}
 
 	docZOffset, err := parseInputToFloat(doc.Call("getElementById", "zOffset").Get("value").String())
 	if err != nil {
-		errorString = errorString + "Z-offset - ошибка формата\n"
+		errorString = errorString + lang.Call("getString", "error.z_offset.format").String() + "\n"
 	} else if docZOffset < -layerHeight || docZOffset > layerHeight {
-		errorString = errorString + "Значение оффсета неправильно (превышает толщину слоя по модулю)\n"
+		errorString = errorString + lang.Call("getString", "error.z_offset.too_big").String() + "\n"
 	} else {
 		zOffset = docZOffset
 	}
@@ -242,10 +243,13 @@ func check() bool {
 func generate(this js.Value, i []js.Value) interface{} {
 	// check and initialize variables
 	if check() {
+		lang := js.Global().Get("lang")
+		var segmentStr = lang.Call("getString", "generator.segment").String()
+		
 		// generate calibration parameters
 		caliParams := ""
 		for i := numSegments - 1; i >= 0; i-- {
-			caliParams = caliParams + fmt.Sprintf(";Сегмент %d:   %sмм @ %sмм/с\n",
+			caliParams = caliParams + fmt.Sprintf(segmentStr,
 				i+1,
 				fmt.Sprint(roundFloat(initRetractLength-retractLengthDelta*float64(i), 2)),
 				fmt.Sprint(roundFloat(initRetractSpeed-retractSpeedDelta*float64(i), 2)))
