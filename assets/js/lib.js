@@ -1,3 +1,6 @@
+const calibrator_version = 'v1.6';
+window.calibrator_version = calibrator_version;
+
 function download(filename, text) {
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -122,7 +125,7 @@ function initLang(key) {
 	var values = window.lang.values;
 	switch (key) {
 		case 'en':
-			values['header.title'] = 'K3D retractions calibrator v1.6';
+			values['header.title'] = 'K3D retractions calibrator';
 			values['header.description'] = 'You can read a detailed description of the work in <a href="http://k3d.tech/calibrations/retractions/">the article on the main site</a>.';
 			values['header.move_exceeds'] = 'If you encounter with error "Move exceeds maximum extrusion", then check <a href="http://k3d.tech/calibrations/retractions/#move-exceeds-maximum-extrusion">here</a>';
 			values['header.language'] = 'Language: ';
@@ -177,6 +180,10 @@ function initLang(key) {
 			values['table.tower_spacing.description'] = '[mm] To check retractions, usually about 100 mm is enough. For large printers that often print large models, about half the length of the longer side of the bed is recommended.';
 			values['table.firmware.title'] = 'Firmware';
 			values['table.firmware.description'] = 'Firmware installed on your printer. If you don\'t know, then it\'s probably Marlin';
+			values['table.start_gcode.title'] = 'Start G-Code';
+			values['table.start_gcode.description'] = 'The code that is executed before test. Change at your own risk! List of possible placeholders:<br><b>$LA</b> - full command to set the k-factor for LA/PA<br><b>$BEDTEMP</b> - bed temperature<br><b>$HOTTEMP</b> - hotend temperature<br><b>$G29</b> - bed heightmap command<br><b>$FLOW</b> - flow';
+			values['table.end_gcode.title'] = 'End G-Code';
+			values['table.end_gcode.description'] = 'The code that is executed after the test. Change at your own risk!';
 			
 			values['generator.generate_and_download'] = 'Generate and download';		
 			values['generator.generate_button_loading'] = 'Generator loading...';		
@@ -234,7 +241,7 @@ function initLang(key) {
 			values['error.k_factor.too_high'] = 'Wrong K-factor value (should be from 0.0 to 2.0)';
 			break;
 		case 'ru':
-			values['header.title'] = 'K3D калибровщик откатов v1.5';
+			values['header.title'] = 'K3D калибровщик откатов';
 			values['header.description'] = 'Подробное описание работы вы можете прочитать в <a href="http://k3d.tech/calibrations/retractions/">статье на основном сайте.</a>';
 			values['header.move_exceeds'] = 'Если сталкиваетесь с ошибкой "Move exceeds maximum extrusion", то вам <a href="http://k3d.tech/calibrations/retractions/#move-exceeds-maximum-extrusion">сюда</a>';
 			values['header.language'] = 'Язык: ';
@@ -291,6 +298,10 @@ function initLang(key) {
 			values['table.tower_spacing.description'] = '[мм] Для проверки откатов, обычно, хватает около 100 мм. Для крупногабаритных принтеров, которые часто печатают большие модели, рекомендуется около половины длины большей стороны стола';
 			values['table.firmware.title'] = 'Прошивка';
 			values['table.firmware.description'] = 'Прошивка, установленная на вашем принтере. Если не знаете, то, скорее всего, Marlin';
+			values['table.start_gcode.title'] = 'Начальный G-код';
+			values['table.start_gcode.description'] = 'Код, выполняемый перед печатью теста. Менять на свой страх и риск! Список возможных плейсхолдеров:<br><b>$LA</b> - полная команда на установку к-фактора LA/PA<br><b>$BEDTEMP</b> - температура стола<br><b>$HOTTEMP</b> - температура хотэнда<br><b>$G29</b> - команда на снятие карты высот стола<br><b>$FLOW</b> - поток';
+			values['table.end_gcode.title'] = 'Конечный G-код';
+			values['table.end_gcode.description'] = 'Код, выполняемый после печати теста. Менять на свой страх и риск!';
 			
 			values['generator.generate_and_download'] = 'Генерировать и скачать';		
 			values['generator.generate_button_loading'] = 'Генератор загружается...';		
@@ -379,7 +390,11 @@ function init() {
 	window.lang = {
 		values: {},
 		getString: function(key) {
-			return window.lang.values[key];
+			var ret = window.lang.values[key];
+			if (key == 'header.title') {
+				return ret + ' ' + calibrator_version;
+			}
+			return ret;
 		}
 	};
 	initLang(lang);
