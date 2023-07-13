@@ -188,6 +188,8 @@ function initLang(key) {
 			values['error.hotend_temp.too_high'] = 'Hotend temperature is too high';
 			values['error.bed_temp.format'] = 'Bed temperature - format error: ';
 			values['error.bed_temp.too_high'] = 'Bed temperature is too high';
+			values['table.flow.title'] = 'Flow';
+			values['table.flow.description'] = '[%] Flow in percents. Needed to compensate for over- or under-extrusion';
 			values['error.fan_speed.format'] = 'Fan speed - format error';
 			values['error.line_width.format'] = 'Line width - format error';
 			values['error.line_width.small_or_big'] = 'Wrong line width (less than 0.1 or greater than 2.0 mm)';
@@ -218,6 +220,8 @@ function initLang(key) {
 			values['error.tower_spacing.too_big'] = 'Distance between towers is too high';
 			values['error.z_offset.format'] = 'Z-offset - format error';
 			values['error.z_offset.too_big'] = 'Offset value is wrong (exceeds the layer thickness in absolute value)';
+			values['error.flow.format'] = 'Flow - format error';
+			values['error.flow.low_or_high'] = 'Value error: flow should be from 50 to 150%';
 			break;
 		case 'ru':
 			values['header.title'] = 'K3D калибровщик откатов v1.5';
@@ -243,6 +247,8 @@ function initLang(key) {
 			values['table.hotend_temp.description'] = '[°C] Температура, до которой нагреть хотэнд перед печатью';
 			values['table.bed_temp.title'] = 'Температура стола';
 			values['table.bed_temp.description'] = '[°C] Температура, до которой нагреть стол перед печатью. Стол будет нагрет до выполнения парковки и автокалибровки стола';
+			values['table.flow.title'] = 'Поток';
+			values['table.flow.description'] = '[%] Поток в процентах. Нужен для компенсации пере- или недоэкструзии';
 			values['table.fan_speed.title'] = 'Скорость вентилятора';
 			values['table.fan_speed.description'] = '[%] Обороты вентилятора в процентах. Для того, чтобы температура хотэнда резко не упала при включении вентилятора, на 1 слое он будет включен на 1/3 от заданного значения, на 2 слое на 2/3, на 4 слое на заданное значение';
 			values['table.line_width.title'] = 'Ширина линии';
@@ -320,6 +326,8 @@ function initLang(key) {
 			values['error.tower_spacing.too_big'] = 'Расстояние между башенками слишком велико';
 			values['error.z_offset.format'] = 'Z-offset - ошибка формата';
 			values['error.z_offset.too_big'] = 'Значение оффсета неправильно (превышает толщину слоя по модулю)';
+			values['error.flow.format'] = 'Поток - ошибка формата';
+			values['error.flow.low_or_high'] = 'Ошибка значения: поток должен быть от 50 до 150%';
 			break;
 	}
 	

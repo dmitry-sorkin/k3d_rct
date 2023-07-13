@@ -9,7 +9,7 @@ The author is not a professional programmer. The code is terrible. When reading 
 
 - [X] English localization
 - [ ] Replace LA logic with firmware selector and value
-- [ ] Implement flow setting
+- [X] Implement flow setting
 - [ ] Implement start/end G-Code setting
 - [ ] Implement reset to default settings button
 - [ ] Change validating logic so that the values are checked before generating file

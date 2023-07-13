@@ -13,7 +13,7 @@ const caliVersion = "v1.5"
 
 var (
 	bedX, bedY, lineWidth, firstLayerLineWidth, printSpeed, travelSpeed, layerHeight, initRetractLength, retractLength, retractLengthDelta, currentE, firstLayerPrintSpeed, segmentHeight, towerSpacing, towerWidth, zOffset, initRetractSpeed, retractSpeed, currentSpeed, retractSpeedDelta float64
-	hotendTemperature, bedTemperature, numSegments, cooling                                                                                                                                                                                                                                   int
+	hotendTemperature, bedTemperature, numSegments, cooling, flow                                                                                                                                                                                                                             int
 	currentCoordinates                                                                                                                                                                                                                                                                        Point
 	bedProbe, retracted, delta                                                                                                                                                                                                                                                                bool
 	kFactorCommand                                                                                                                                                                                                                                                                            string
@@ -228,6 +228,15 @@ func check() bool {
 	} else {
 		zOffset = docZOffset
 	}
+	
+	docFlow, err := parseInputToInt(doc.Call("getElementById", "flow").Get("value").String())
+	if err != nil {
+		errorString = errorString + lang.Call("getString", "error.flow.format").String() + "\n"
+	} else if docFlow < 50 || docFlow > 150 {
+		errorString = errorString + lang.Call("getString", "error.flow.low_or_high").String() + "\n"
+	} else {
+		flow = docFlow
+	}
 
 	// end check of parameters
 	if errorString == "" {
@@ -279,7 +288,8 @@ func generate(this js.Value, i []js.Value) interface{} {
 		gcode = append(gcode, "G92 E0\n",
 			"G90\n",
 			"M82\n",
-			fmt.Sprintf("M106 S%d\n", int(cooling/3)))
+			fmt.Sprintf("M106 S%d\n", int(cooling/3)),
+			fmt.Sprintf("M221 S%d\n", flow))
 
 		// generate first layer
 		var bedCenter, leftTowerCenter, rightTowerCenter Point
