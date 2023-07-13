@@ -37,6 +37,17 @@
         <td class="lang" id="table.bed_size_y.description">[мм] Для декартовых принтеров - максимальная координата по оси Y<br>Для дельта-принтеров - <b>диаметр стола</b></td>
       </tr>
       <tr>
+        <td class="lang" id="table.firmware.title">Прошивка</td>
+        <td style="text-align:center;">
+          <form>
+			<input type="radio" id="firmwareMarlin" name="firmware" value="Marlin" checked><label for="firmwareMarlin">Marlin</label><br>
+            <input type="radio" id="firmwareKlipper" name="firmware" value="Klipper"><label for="firmwareKlipper">Klipper</label><br>
+            <input type="radio" id="firmwareRRF" name="firmware" value="RRF"><label for="firmwareRRF">RRF</label>
+          </form>
+        </td>
+        <td class="lang" id="table.firmware.description">Прошивка, установленная на вашем принтере. Если не знаете, то, скорее всего, Marlin</td>
+      </tr>
+      <tr>
         <td class="lang" id="table.z_offset.title">Z-offset</td>
         <td><input type="text" id="zOffset" name="zOffset" value="0.0"></td>
         <td class="lang" id="table.z_offset.description">[мм] Смещение всей модели по вертикали. Нужно чтобы компенсировать слишком тонкую/толстую калибровку первого слоя. В общем случае оставьте ноль</td>
@@ -138,13 +149,8 @@
       </tr>
       <tr>
         <td class="lang" id="table.k_factor.title">k-фактор Linear Advance</td>
-        <td><input type="text" id="kFactor" name="kFactor" value="M900 K0.0"></td>
-        <td class="lang" id="table.k_factor.description">Впишите команду, которую ваша прошивка использует для выставления k-фактора Linear/Pressure Advance<br>
-          Для Marlin 'M900 K(значение)'<br>
-          Для Klipper 'SET_PRESSURE_ADVANCE ADVANCE=(значение)'<br>
-          Для RRF 'M572 D0 S(значение)'<br>
-          Если вы не пользуетесь Linear/Pressure Advance, то очистите поле или оставьте значение нулевым
-        </td>
+        <td><input type="text" id="kFactor2" name="kFactor2" value="0.0"></td>
+        <td class="lang" id="table.k_factor.description">Введите сюда ваше значение для Linear/Pressure Advance. Если вы не пользуетесь Linear/Pressure Advance, то очистите поле или оставьте значение нулевым</td>
       </tr>
       <tr>
         <td class="lang" id="table.tower_spacing.title">Расстояние между башенками</td>
