@@ -9,14 +9,13 @@ import (
 )
 
 const filamentDiameter = 1.75
-const caliVersion = "v1.5"
 
 var (
-	bedX, bedY, lineWidth, firstLayerLineWidth, printSpeed, travelSpeed, layerHeight, initRetractLength, retractLength, retractLengthDelta, currentE, firstLayerPrintSpeed, segmentHeight, towerSpacing, towerWidth, zOffset, initRetractSpeed, retractSpeed, currentSpeed, retractSpeedDelta float64
-	hotendTemperature, bedTemperature, numSegments, cooling, flow                                                                                                                                                                                                                             int
-	currentCoordinates                                                                                                                                                                                                                                                                        Point
-	bedProbe, retracted, delta                                                                                                                                                                                                                                                                bool
-	kFactorCommand                                                                                                                                                                                                                                                                            string
+	bedX, bedY, lineWidth, firstLayerLineWidth, printSpeed, travelSpeed, layerHeight, initRetractLength, retractLength, retractLengthDelta, currentE, firstLayerPrintSpeed, segmentHeight, towerSpacing, towerWidth, zOffset, initRetractSpeed, retractSpeed, currentSpeed, retractSpeedDelta, kFactor float64
+	hotendTemperature, bedTemperature, numSegments, cooling, flow, firmware                                                                                                                                                                                                                            int
+	currentCoordinates                                                                                                                                                                                                                                                                                 Point
+	bedProbe, retracted, delta                                                                                                                                                                                                                                                                         bool
+	startGcode, endGcode                                                                                                                                                                                                                                                                               string
 )
 
 type Point struct {
@@ -207,8 +206,6 @@ func check() bool {
 		segmentHeight = docSegmentHeight
 	}
 
-	kFactorCommand = doc.Call("getElementById", "kFactor").Get("value").String() + "\n"
-
 	docTowerSpacing, err := parseInputToFloat(doc.Call("getElementById", "towerSpacing").Get("value").String())
 	if err != nil {
 		errorString = errorString + lang.Call("getString", "error.tower_spacing.format").String() + "\n"
@@ -237,6 +234,31 @@ func check() bool {
 	} else {
 		flow = docFlow
 	}
+	
+	docKFactor, err := parseInputToFloat(doc.Call("getElementById", "kFactor2").Get("value").String())
+	if err != nil {
+		errorString = errorString + lang.Call("getString", "error.k_factor.format").String() + "\n"
+	} else if docKFactor < 0.0 || docKFactor > 2.0 {
+		errorString = errorString + lang.Call("getString", "error.k_factor.too_high").String() + "\n"
+	} else {
+		kFactor = docKFactor
+	}
+	
+	docMarlin := doc.Call("getElementById", "firmwareMarlin").Get("checked").Bool()
+	docKlipper := doc.Call("getElementById", "firmwareKlipper").Get("checked").Bool()
+	docRRF := doc.Call("getElementById", "firmwareRRF").Get("checked").Bool()
+	if docMarlin {
+		firmware = 0
+	} else if docKlipper {
+		firmware = 1
+	} else if docRRF {
+		firmware = 2
+	} else {
+		errorString = errorString + lang.Call("getString", "error.firmware.not_set").String() + "\n"
+	}
+	
+	startGcode = doc.Call("getElementById", "startGcode").Get("innerHTML").String()
+	endGcode = doc.Call("getElementById", "endGcode").Get("innerHTML").String()
 
 	// end check of parameters
 	if errorString == "" {
@@ -253,7 +275,7 @@ func generate(this js.Value, i []js.Value) interface{} {
 	// check and initialize variables
 	if check() {
 		lang := js.Global().Get("lang")
-		var segmentStr = lang.Call("getString", "generator.segment").String()
+		segmentStr := lang.Call("getString", "generator.segment").String()
 		
 		// generate calibration parameters
 		caliParams := ""
@@ -267,7 +289,7 @@ func generate(this js.Value, i []js.Value) interface{} {
 		gcode := make([]string, 0, 1)
 		// gcode initialization
 		gcode = append(gcode, "; generated by K3D Retraction calibration towers generator ",
-			caliVersion,
+			js.Global().Get("calibrator_version").String(),
 			"\n",
 			"; Written by Dmitry Sorkin @ http://k3d.tech/\n",
 			"; and Kekht\n",
@@ -277,19 +299,18 @@ func generate(this js.Value, i []js.Value) interface{} {
 			fmt.Sprintf(";Layer height: %f\n", layerHeight),
 			fmt.Sprintf(";Retract length: %f, -%f/segment\n", retractLength, retractLengthDelta),
 			fmt.Sprintf(";Segments: %dx%f mm\n", numSegments, segmentHeight),
-			caliParams,
-			kFactorCommand,
-			fmt.Sprintf("M190 S%d\n", bedTemperature),
-			fmt.Sprintf("M109 S%d\n", hotendTemperature),
-			"G28\n")
+			caliParams)
+			
+		var g29 string
 		if bedProbe {
-			gcode = append(gcode, "G29\n")
+			g29 = "G29"
+		} else {
+			g29 = ""
 		}
-		gcode = append(gcode, "G92 E0\n",
-			"G90\n",
-			"M82\n",
-			fmt.Sprintf("M106 S%d\n", int(cooling/3)),
-			fmt.Sprintf("M221 S%d\n", flow))
+		replacer := strings.NewReplacer("$LA", generateLACommand(kFactor), "$BEDTEMP", strconv.Itoa(bedTemperature), "$HOTTEMP", strconv.Itoa(hotendTemperature), "$G29", g29, "$FLOW", strconv.Itoa(flow))
+		gcode = append(gcode, replacer.Replace(startGcode), "\n")
+		
+		gcode = append(gcode, "M82\n", fmt.Sprintf("M106 S%d\n", int(cooling/3)))
 
 		// generate first layer
 		var bedCenter, leftTowerCenter, rightTowerCenter Point
@@ -435,13 +456,8 @@ func generate(this js.Value, i []js.Value) interface{} {
 		}
 
 		// end gcode
-		gcode = append(gcode, ";end gcode\n",
-			"M104 S0\n",
-			"M140 S0\n",
-			"M106 S0\n",
-			fmt.Sprintf("G1 Z%f F600\n", currentCoordinates.Z+5),
-			fmt.Sprintf("G1 X%f Y%f F3000\n", bedCenter.X, bedCenter.Y),
-			"M84")
+		gcode = append(gcode, ";end gcode\n", replacer.Replace(endGcode))
+
 
 		outputGCode := ""
 		for i := 0; i < len(gcode); i++ {
@@ -464,6 +480,18 @@ func generate(this js.Value, i []js.Value) interface{} {
 	}
 
 	return js.ValueOf(nil)
+}
+
+func generateLACommand(kFactor float64) string {
+	if firmware == 0 {
+		return fmt.Sprintf("M900 K%s", fmt.Sprint(roundFloat(kFactor, 3)))
+	} else if firmware == 1 {
+		return fmt.Sprintf("SET_PRESSURE_ADVANCE ADVANCE=%s", fmt.Sprint(roundFloat(kFactor, 3)))
+	} else if firmware == 2 {
+		return fmt.Sprintf("M572 D0 S%s", fmt.Sprint(roundFloat(kFactor, 3)))
+	}
+
+	return ";no firmware information"
 }
 
 func rotateSquareTrajectoryCW(trajectory []Point) []Point {

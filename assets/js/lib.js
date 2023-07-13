@@ -1,3 +1,6 @@
+const calibrator_version = 'v1.6';
+window.calibrator_version = calibrator_version;
+
 function download(filename, text) {
     var element = document.createElement('a');
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
@@ -68,8 +71,12 @@ var formFields = [
     "endRetractSpeed",
     "numSegments",
     "segmentHeight",
-    "kFactor",
+    "kFactor2",
     "towerSpacing",
+    "flow",
+    "firmwareMarlin",
+    "firmwareKlipper",
+    "firmwareRRF",
 ];
 
 var saveForm = function () {
@@ -77,7 +84,7 @@ var saveForm = function () {
         var element = document.getElementById(elementId);
         if (element) {
             var saveValue = element.value;
-            if (elementId == 'delta' || elementId == 'bedProbe') {
+            if (elementId == 'delta' || elementId == 'bedProbe' || elementId == 'firmwareMarlin' || elementId == 'firmwareKlipper' || elementId == 'firmwareRRF') {
                 saveValue = element.checked;
             }
             localStorage.setItem(elementId, saveValue);
@@ -94,7 +101,7 @@ function loadForm() {
 
         var element = document.getElementById(elementId);
         if (element) {
-            if (elementId == 'delta' || elementId == 'bedProbe') {
+            if (elementId == 'delta' || elementId == 'bedProbe' || elementId == 'firmwareMarlin' || elementId == 'firmwareKlipper' || elementId == 'firmwareRRF') {
 				element.checked = loadValue == 'true';
             } else {
                 if (loadValue != null) {
@@ -118,7 +125,7 @@ function initLang(key) {
 	var values = window.lang.values;
 	switch (key) {
 		case 'en':
-			values['header.title'] = 'K3D retractions calibrator v1.6';
+			values['header.title'] = 'K3D retractions calibrator';
 			values['header.description'] = 'You can read a detailed description of the work in <a href="http://k3d.tech/calibrations/retractions/">the article on the main site</a>.';
 			values['header.move_exceeds'] = 'If you encounter with error "Move exceeds maximum extrusion", then check <a href="http://k3d.tech/calibrations/retractions/#move-exceeds-maximum-extrusion">here</a>';
 			values['header.language'] = 'Language: ';
@@ -168,9 +175,15 @@ function initLang(key) {
 			values['table.segment_height.title'] = 'Segment height';
 			values['table.segment_height.description'] = '[mm] The height of one segment of the tower. For example, if the height of the segment is 3mm, and the number of segments is 10, then the height of the entire tower will be 30mm';
 			values['table.k_factor.title'] = 'Linear Advance k-factor';
-			values['table.k_factor.description'] = 'Enter the command your firmware uses to set the Linear/Pressure Advance k-factor<br> For Marlin \'M900 K(value)\'<br> For Klipper \'SET_PRESSURE_ADVANCE ADVANCE=(value)\'<br> For RRF \'M572 D0 S(value)\'<br> If you are not using Linear/Pressure Advance, then clear the field or leave the value null';
+			values['table.k_factor.description'] = 'Enter your value for Linear/Pressure Advance here. If you are not using Linear/Pressure Advance then leave the value at zero';
 			values['table.tower_spacing.title'] = 'Distance between towers';
 			values['table.tower_spacing.description'] = '[mm] To check retractions, usually about 100 mm is enough. For large printers that often print large models, about half the length of the longer side of the bed is recommended.';
+			values['table.firmware.title'] = 'Firmware';
+			values['table.firmware.description'] = 'Firmware installed on your printer. If you don\'t know, then it\'s probably Marlin';
+			values['table.start_gcode.title'] = 'Start G-Code';
+			values['table.start_gcode.description'] = 'The code that is executed before test. Change at your own risk! List of possible placeholders:<br><b>$LA</b> - full command to set the k-factor for LA/PA<br><b>$BEDTEMP</b> - bed temperature<br><b>$HOTTEMP</b> - hotend temperature<br><b>$G29</b> - bed heightmap command<br><b>$FLOW</b> - flow';
+			values['table.end_gcode.title'] = 'End G-Code';
+			values['table.end_gcode.description'] = 'The code that is executed after the test. Change at your own risk!';
 			
 			values['generator.generate_and_download'] = 'Generate and download';		
 			values['generator.generate_button_loading'] = 'Generator loading...';		
@@ -223,9 +236,12 @@ function initLang(key) {
 			values['error.z_offset.too_big'] = 'Offset value is wrong (exceeds the layer thickness in absolute value)';
 			values['error.flow.format'] = 'Flow - format error';
 			values['error.flow.low_or_high'] = 'Value error: flow should be from 50 to 150%';
+			values['error.firmware.not_set'] = 'Format error: firmware not set';
+			values['error.k_factor.format'] = 'K-factor - format error';
+			values['error.k_factor.too_high'] = 'Wrong K-factor value (should be from 0.0 to 2.0)';
 			break;
 		case 'ru':
-			values['header.title'] = 'K3D калибровщик откатов v1.5';
+			values['header.title'] = 'K3D калибровщик откатов';
 			values['header.description'] = 'Подробное описание работы вы можете прочитать в <a href="http://k3d.tech/calibrations/retractions/">статье на основном сайте.</a>';
 			values['header.move_exceeds'] = 'Если сталкиваетесь с ошибкой "Move exceeds maximum extrusion", то вам <a href="http://k3d.tech/calibrations/retractions/#move-exceeds-maximum-extrusion">сюда</a>';
 			values['header.language'] = 'Язык: ';
@@ -277,9 +293,15 @@ function initLang(key) {
 			values['table.segment_height.title'] = 'Высота сегмента';
 			values['table.segment_height.description'] = '[мм] Высота одного сегмента башенки. К примеру, если высота сегмента 3мм, а количество сегментов 10, то высота всей башенки будет 30мм';
 			values['table.k_factor.title'] = 'k-фактор Linear Advance';
-			values['table.k_factor.description'] = 'Впишите команду, которую ваша прошивка использует для выставления k-фактора Linear/Pressure Advance<br> Для Marlin \'M900 K(значение)\'<br> Для Klipper \'SET_PRESSURE_ADVANCE ADVANCE=(значение)\'<br> Для RRF \'M572 D0 S(значение)\'<br> Если вы не пользуетесь Linear/Pressure Advance, то очистите поле или оставьте значение нулевым';
+			values['table.k_factor.description'] = 'Введите сюда ваше значение для Linear/Pressure Advance. Если вы не пользуетесь Linear/Pressure Advance, то оставьте значение нулевым';
 			values['table.tower_spacing.title'] = 'Расстояние между башенками';
 			values['table.tower_spacing.description'] = '[мм] Для проверки откатов, обычно, хватает около 100 мм. Для крупногабаритных принтеров, которые часто печатают большие модели, рекомендуется около половины длины большей стороны стола';
+			values['table.firmware.title'] = 'Прошивка';
+			values['table.firmware.description'] = 'Прошивка, установленная на вашем принтере. Если не знаете, то, скорее всего, Marlin';
+			values['table.start_gcode.title'] = 'Начальный G-код';
+			values['table.start_gcode.description'] = 'Код, выполняемый перед печатью теста. Менять на свой страх и риск! Список возможных плейсхолдеров:<br><b>$LA</b> - полная команда на установку к-фактора LA/PA<br><b>$BEDTEMP</b> - температура стола<br><b>$HOTTEMP</b> - температура хотэнда<br><b>$G29</b> - команда на снятие карты высот стола<br><b>$FLOW</b> - поток';
+			values['table.end_gcode.title'] = 'Конечный G-код';
+			values['table.end_gcode.description'] = 'Код, выполняемый после печати теста. Менять на свой страх и риск!';
 			
 			values['generator.generate_and_download'] = 'Генерировать и скачать';		
 			values['generator.generate_button_loading'] = 'Генератор загружается...';		
@@ -330,6 +352,9 @@ function initLang(key) {
 			values['error.z_offset.too_big'] = 'Значение оффсета неправильно (превышает толщину слоя по модулю)';
 			values['error.flow.format'] = 'Поток - ошибка формата';
 			values['error.flow.low_or_high'] = 'Ошибка значения: поток должен быть от 50 до 150%';
+			values['error.firmware.not_set'] = 'Ошибка формата: не выбрана прошивка';
+			values['error.k_factor.format'] = 'K-фактор - ошибка формата';
+			values['error.k_factor.too_high'] = 'Неверное значение K-фактора (должно быть от 0.0 до 2.0)';
 			break;
 	}
 	
@@ -365,7 +390,11 @@ function init() {
 	window.lang = {
 		values: {},
 		getString: function(key) {
-			return window.lang.values[key];
+			var ret = window.lang.values[key];
+			if (key == 'header.title') {
+				return ret + ' ' + calibrator_version;
+			}
+			return ret;
 		}
 	};
 	initLang(lang);

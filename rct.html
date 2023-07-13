@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>K3D калибровщик откатов v1.6</title>
+  <title>K3D калибровщик откатов</title>
   <script src="assets/js/lib.js"></script>
   <script src="assets/js/wasm_exec.js"></script>
   <script src="assets/js/gwaloader.js"></script>
@@ -14,7 +14,7 @@
 </head>
 
 <body onload="init()">
-  <h1 class="lang" id="header.title">K3D калибровщик откатов v1.6</h1>
+  <h1 class="lang" id="header.title">K3D калибровщик откатов</h1>
   <p class="lang" id="header.description">Подробное описание работы вы можете прочитать в <a href="http://k3d.tech/retractions/">статье на основном
       сайте.</a></p>
   <p class="lang" id="header.move_exceeds">Если сталкиваетесь с ошибкой "Move exceeds maximum extrusion", то вам <a href="http://k3d.tech/retractions/#move-exceeds-maximum-extrusion">сюда</a></p>
@@ -35,6 +35,17 @@
         <td class="lang" id="table.bed_size_y.title">Размер стола по Y</td>
         <td><input type="text" id="bedY" name="BedY" value="235"></td>
         <td class="lang" id="table.bed_size_y.description">[мм] Для декартовых принтеров - максимальная координата по оси Y<br>Для дельта-принтеров - <b>диаметр стола</b></td>
+      </tr>
+      <tr>
+        <td class="lang" id="table.firmware.title">Прошивка</td>
+        <td style="text-align:center;">
+          <form>
+			<input type="radio" id="firmwareMarlin" name="firmware" value="Marlin" checked><label for="firmwareMarlin">Marlin</label><br>
+            <input type="radio" id="firmwareKlipper" name="firmware" value="Klipper"><label for="firmwareKlipper">Klipper</label><br>
+            <input type="radio" id="firmwareRRF" name="firmware" value="RRF"><label for="firmwareRRF">RRF</label>
+          </form>
+        </td>
+        <td class="lang" id="table.firmware.description">Прошивка, установленная на вашем принтере. Если не знаете, то, скорее всего, Marlin</td>
       </tr>
       <tr>
         <td class="lang" id="table.z_offset.title">Z-offset</td>
@@ -138,19 +149,40 @@
       </tr>
       <tr>
         <td class="lang" id="table.k_factor.title">k-фактор Linear Advance</td>
-        <td><input type="text" id="kFactor" name="kFactor" value="M900 K0.0"></td>
-        <td class="lang" id="table.k_factor.description">Впишите команду, которую ваша прошивка использует для выставления k-фактора Linear/Pressure Advance<br>
-          Для Marlin 'M900 K(значение)'<br>
-          Для Klipper 'SET_PRESSURE_ADVANCE ADVANCE=(значение)'<br>
-          Для RRF 'M572 D0 S(значение)'<br>
-          Если вы не пользуетесь Linear/Pressure Advance, то очистите поле или оставьте значение нулевым
-        </td>
+        <td><input type="text" id="kFactor2" name="kFactor2" value="0.0"></td>
+        <td class="lang" id="table.k_factor.description">Введите сюда ваше значение для Linear/Pressure Advance. Если вы не пользуетесь Linear/Pressure Advance, то очистите поле или оставьте значение нулевым</td>
       </tr>
       <tr>
         <td class="lang" id="table.tower_spacing.title">Расстояние между башенками</td>
         <td><input type="text" id="towerSpacing" name="towerSpacing" value="100"></td>
         <td class="lang" id="table.tower_spacing.description">[мм] Для проверки откатов, обычно, хватает около 100 мм. Для крупногабаритных принтеров, которые часто
           печатают большие модели, рекомендуется около половины длины большей стороны стола</td>
+      </tr>
+	  <tr>
+        <td class="lang" id="table.start_gcode.title">Начальный G-код</td>
+		<!-- It can't be formatted, otherwise formatting breaks in the browser :( -->
+        <td><textarea type="text" id="startGcode" name="startGcode" rows="5">
+$LA ;Установить k-фактор для Linear/Pressure Advance
+M190 S$BEDTEMP ;прогреть стол до температуры, указанной в настройках
+M109 S$HOTTEMP ;прогреть хотэнд до температуры, указанной в настройках
+G28 ;припарковать все оси
+$G29 ;снять карту высот стола
+G90 ;абсолютная система координат
+G92 E0 ;сбросить координату экструдера
+M220 S100 ;Множитель скорости 100%
+M221 S$FLOW ;Множитель потока взять из настроек</textarea></td>
+        <td class="lang" id="table.start_gcode.description">Начальный G-код для печати. В общем случае не требуется менять его вручную</td>
+      </tr>
+	  <tr>
+        <td class="lang" id="table.end_gcode.title">Конечный G-код</td>
+        <td><textarea type="text" id="endGcode" name="endGcode" rows="5">
+M104 S0 ;выключить хотэнд
+M140 S0 ;выключить нагрев стола
+M106 S0 ;выключить вентилятор модели
+G91 ;относительная система координат
+G1 E-5 F600 ;сделать откат на 5мм
+G1 Z1 F300 ;поднять голову на 1мм</textarea></td>
+        <td class="lang" id="table.end_gcode.description">Конечный G-код для печати. В общем случае не требуется менять его вручную</td>
       </tr>
     </tbody>
   </table>
