@@ -1,14 +1,17 @@
 # K3D Retraction calibration towers generator
 
-Простой генератор башенок для калибровки откатов, написанный на golang. Хостится [>тут<](https://k3d.tech/calibrations/retractions/rct.html). 
-Автор не является профессиональным программистом. Код ужасен. При чтении кода остерегайтесь психологических травм.
+Simple retraction towers generator for retraction calibration written in golang. Hosted [>here<](https://k3d.tech/calibrations/retractions/rct.html?lang=en). 
+The author is not a professional programmer. The code is terrible. When reading the code, avoid psychological trauma.
 
 ------
 
 ## TODO
 
-- Заменить ввод команды на установку значения LA на выбор прошивки + ввод значения;
-- Добавить настройку потока;
-- Добавить возможность вписывать свой начальный и конечный G-код печати;
-- Добавить кнопку сброса значений к стандартным;
-- Сделать так, чтобы список проверяемых значений показывался не при генерации файла, а при изменении количества сегментов, начального и конечного значения проверки.
+- [X] English localization
+- [ ] Replace LA logic with firmware selector and value
+- [X] Implement flow setting
+- [ ] Implement start/end G-Code setting
+- [X] Implement reset to default settings button
+- [ ] Change validating logic so that the values are checked before generating file
+
+[Русская версия](README_RU.md)
