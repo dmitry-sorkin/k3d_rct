@@ -20,7 +20,7 @@ a {
 }
 
 a:hover {
-    color: rgb(255, 110, 66);
+    color: #5d6cc0;
 }
 
 h1 {
@@ -59,13 +59,13 @@ button {
     border-width: 2px;
     font-weight: 700;
     border-radius: 2px;
-    border-bottom-color: rgb(255, 110, 66);
-    border-top-color: rgb(255, 110, 66);
-    border-left-color: rgb(255, 110, 66);
-    border-right-color: rgb(255, 110, 66);
+    border-bottom-color: #6c91d5;
+    border-top-color: #6c91d5;
+    border-left-color: #6c91d5;
+    border-right-color: #6c91d5;
     background-color: hsl(232deg 15% 21%);
     border-style: solid;
-    color: rgb(255, 110, 66);
+    color: #6c91d5;
     padding-left: 32px;
     padding-right: 32px;
     padding-top: 10px;
@@ -100,14 +100,14 @@ button:disabled {
 }
 
 button:hover {
-    background-color: rgb(255, 110, 66);
+    background-color: #6c91d5;
     color: rgb(0, 0, 0);
 }
 
 button:focus {
-    background-color: rgb(255, 110, 66);
+    background-color: #6c91d5;
     color: rgb(0, 0, 0);
-    box-shadow: 0 0 0 4px rgba(255, 110, 66, 0.5);
+    box-shadow: 0 0 0 4px #6c91d5;
 }
 
 input[type="text"] {
@@ -123,7 +123,7 @@ textarea {
 }
 
 tr:hover td {
-    color: rgba(255, 110, 0, 1.0);
+    color: #6c91d5;
     transition: .2s ease;
 }
 
@@ -170,7 +170,7 @@ a.navbar-back {
     padding-top: 28px;
     cursor: pointer;
     color: rgb(255, 255, 255);
-    outline-color: rgb(255, 145, 0);
+    outline-color: #6c91d5;
     transition-delay: 0s;
     transition-duration: 0.25s;
     transition-property: opacity;
