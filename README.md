@@ -18,6 +18,6 @@ Install golang and then simply run build.bat/build.sh, it should generate WASM f
 - [X] Implement flow setting
 - [X] Implement start/end G-Code setting
 - [X] Implement reset to default settings button
-- [ ] Change validating logic so that the values are checked before generating file
+- [X] Change validating logic so that the values are checked before generating file
 
 [Русская версия](README_RU.md)

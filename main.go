@@ -32,31 +32,54 @@ func main() {
 
 func registerFunctions() {
 	js.Global().Set("generate", js.FuncOf(generate))
+	js.Global().Set("checkGo", js.FuncOf(checkJs))
 }
 
-func check() bool {
+func setErrorDescription(doc js.Value, lang js.Value, key string, curErr string, hasErr bool) {
+	if hasErr {
+		doc.Call("getElementById", key).Set("innerHTML", lang.Call("getString", key).String() + "<br><span class=\"inline-error\">" + curErr + "</span>")
+	} else {
+		doc.Call("getElementById", key).Set("innerHTML", lang.Call("getString", key).String())
+	}
+}
+
+func check(showErrorBox bool) bool {
 	errorString := ""
 	doc := js.Global().Get("document")
 	lang := js.Global().Get("lang")
 	doc.Call("getElementById", "resultContainer").Set("innerHTML", "")
 
 	// Fill variables with data from web page
+	curErr := ""
+	hasErr := false
+	
 	docBedX, err := parseInputToFloat(doc.Call("getElementById", "bedX").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.bed_size_x.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.bed_size_x.format").String(), true
 	} else if docBedX < 100 || docBedX > 1000 {
-		errorString = errorString + lang.Call("getString", "error.bed_size_x.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.bed_size_x.small_or_big").String(), true
 	} else {
 		bedX = docBedX
+	}
+	
+	setErrorDescription(doc, lang, "table.bed_size_x.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docBedY, err := parseInputToFloat(doc.Call("getElementById", "bedY").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.bed_size_y.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.bed_size_y.format").String(), true
 	} else if docBedY < 100 || docBedY > 1000 {
-		errorString = errorString + lang.Call("getString", "error.bed_size_y.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.bed_size_y.small_or_big").String(), true
 	} else {
 		bedY = docBedY
+	}
+	setErrorDescription(doc, lang, "table.bed_size_y.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	delta = doc.Call("getElementById", "delta").Get("checked").Bool()
@@ -65,27 +88,37 @@ func check() bool {
 
 	docHotTemp, err := parseInputToInt(doc.Call("getElementById", "hotendTemperature").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.hotend_temp.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.hotend_temp.format").String(), true
 	} else if docHotTemp < 150 {
-		errorString = errorString + lang.Call("getString", "error.hotend_temp.too_low").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.hotend_temp.too_low").String(), true
 	} else if docHotTemp > 350 {
-		errorString = errorString + lang.Call("getString", "error.hotend_temp.too_high").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.hotend_temp.too_high").String(), true
 	} else {
 		hotendTemperature = docHotTemp
+	}
+	setErrorDescription(doc, lang, "table.hotend_temp.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docBedTemp, err := parseInputToInt(doc.Call("getElementById", "bedTemperature").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.bed_temp.format").String() + err.Error()
+		curErr, hasErr = lang.Call("getString", "error.bed_temp.format").String() + err.Error(), true
 	} else if docBedTemp > 150 {
-		errorString = errorString + lang.Call("getString", "error.bed_temp.too_high").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.bed_temp.too_high").String(), true
 	} else {
 		bedTemperature = docBedTemp
+	}
+	setErrorDescription(doc, lang, "table.bed_temp.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docCooling, err := parseInputToInt(doc.Call("getElementById", "cooling").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.fan_speed.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.fan_speed.format").String(), true
 	} else {
 		docCooling = int(float64(docCooling) * 2.55)
 		if docCooling < 0 {
@@ -95,153 +128,238 @@ func check() bool {
 		}
 		cooling = docCooling
 	}
+	setErrorDescription(doc, lang, "table.fan_speed.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
+	}
 
 	docLineWidth, err := parseInputToFloat(doc.Call("getElementById", "lineWidth").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.line_width.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.line_width.format").String(), true
 	} else if docLineWidth < 0.1 || docLineWidth > 2.0 {
-		errorString = errorString + lang.Call("getString", "error.line_width.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.line_width.small_or_big").String(), true
 	} else {
 		lineWidth = docLineWidth
+	}
+	setErrorDescription(doc, lang, "table.line_width.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docFirstLineWidth, err := parseInputToFloat(doc.Call("getElementById", "firstLayerLineWidth").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.first_line_width.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.first_line_width.format").String(), true
 	} else if docFirstLineWidth < 0.1 || docFirstLineWidth > 2.0 {
-		errorString = errorString + lang.Call("getString", "error.first_line_width.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.first_line_width.small_or_big").String(), true
 	} else {
 		firstLayerLineWidth = docFirstLineWidth
+	}
+	setErrorDescription(doc, lang, "table.first_line_width.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docLayerHeight, err := parseInputToFloat(doc.Call("getElementById", "layerHeight").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.layer_height.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.layer_height.format").String(), true
 	} else if docLayerHeight < 0.05 || docLayerHeight > lineWidth*0.75 {
-		errorString = errorString + lang.Call("getString", "error.layer_height.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.layer_height.small_or_big").String(), true
 	} else {
 		layerHeight = docLayerHeight
+	}
+	setErrorDescription(doc, lang, "table.layer_height.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docPrintSpeed, err := parseInputToFloat(doc.Call("getElementById", "printSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.print_speed.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.print_speed.format").String(), true
 	} else if docPrintSpeed < 10 || docPrintSpeed > 1000 {
-		errorString = errorString + lang.Call("getString", "error.print_speed.slow_or_fast").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.print_speed.slow_or_fast").String(), true
 	} else {
 		printSpeed = docPrintSpeed
+	}
+	setErrorDescription(doc, lang, "table.print_speed.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docFirstPrintSpeed, err := parseInputToFloat(doc.Call("getElementById", "firstLayerPrintSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.first_print_speed.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.first_print_speed.format").String(), true
 	} else if docFirstPrintSpeed < 10 || docFirstPrintSpeed > 1000 {
-		errorString = errorString + lang.Call("getString", "error.first_print_speed.slow_or_fast").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.first_print_speed.slow_or_fast").String(), true
 	} else {
 		firstLayerPrintSpeed = docFirstPrintSpeed
+	}
+	setErrorDescription(doc, lang, "table.first_print_speed.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docTravelSpeed, err := parseInputToFloat(doc.Call("getElementById", "travelSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.travel_speed.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.travel_speed.format").String(), true
 	} else if docTravelSpeed < 10 || docTravelSpeed > 1000 {
-		errorString = errorString + lang.Call("getString", "error.travel_speed.slow_or_fast").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.travel_speed.slow_or_fast").String(), true
 	} else {
 		travelSpeed = docTravelSpeed
+	}
+	setErrorDescription(doc, lang, "table.travel_speed.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docNumSegments, err := parseInputToInt(doc.Call("getElementById", "numSegments").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.num_segments.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.num_segments.format").String(), true
 	} else if docNumSegments < 2 || docNumSegments > 100 {
-		errorString = errorString + lang.Call("getString", "error.num_segments.slow_or_fast").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.num_segments.slow_or_fast").String(), true
 	} else {
 		numSegments = docNumSegments
+	}
+	setErrorDescription(doc, lang, "table.num_segments.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docInitRetractLength, err := parseInputToFloat(doc.Call("getElementById", "initRetractLength").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.init_retract_length.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.init_retract_length.format").String(), true
 	} else if docInitRetractLength < 0 || docInitRetractLength > 20 {
-		errorString = errorString + lang.Call("getString", "error.init_retract_length.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.init_retract_length.small_or_big").String(), true
 	} else {
 		retractLength = docInitRetractLength
 		initRetractLength = docInitRetractLength
 	}
+	setErrorDescription(doc, lang, "table.init_retract_length.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
+	}
 
 	docEndRetractLength, err := parseInputToFloat(doc.Call("getElementById", "endRetractLength").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.end_retract_length.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.end_retract_length.format").String(), true
 	} else if docEndRetractLength < 0 || docEndRetractLength > 20 {
-		errorString = errorString + lang.Call("getString", "error.end_retract_length.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.end_retract_length.small_or_big").String(), true
 	} else {
 		retractLengthDelta = (docInitRetractLength - docEndRetractLength) / float64(numSegments-1)
+	}
+	setErrorDescription(doc, lang, "table.end_retract_length.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docRetractSpeed, err := parseInputToFloat(doc.Call("getElementById", "initRetractSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.init_retract_speed.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.init_retract_speed.format").String(), true
 	} else if docRetractSpeed < 5 || docRetractSpeed > 150 {
-		errorString = errorString + lang.Call("getString", "error.init_retract_speed.slow_or_fast").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.init_retract_speed.slow_or_fast").String(), true
 	} else {
 		retractSpeed = docRetractSpeed
 		initRetractSpeed = docRetractSpeed
 	}
+	setErrorDescription(doc, lang, "table.init_retract_speed.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
+	}
 
 	docEndRetractSpeed, err := parseInputToFloat(doc.Call("getElementById", "endRetractSpeed").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.end_retract_speed.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.end_retract_speed.format").String(), true
 	} else if docEndRetractSpeed < 5 || docEndRetractSpeed > 150 {
-		errorString = errorString + lang.Call("getString", "error.end_retract_speed.slow_or_fast").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.end_retract_speed.slow_or_fast").String(), true
 	} else {
 		retractSpeedDelta = (docRetractSpeed - docEndRetractSpeed) / float64(numSegments-1)
+	}
+	setErrorDescription(doc, lang, "table.end_retract_speed.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docSegmentHeight, err := parseInputToFloat(doc.Call("getElementById", "segmentHeight").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.segment_height.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.segment_height.format").String(), true
 	} else if docSegmentHeight < 0.5 || docSegmentHeight > 20 {
-		errorString = errorString + lang.Call("getString", "error.segment_height.small_or_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.segment_height.small_or_big").String(), true
 	} else {
 		segmentHeight = docSegmentHeight
+	}
+	setErrorDescription(doc, lang, "table.segment_height.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docTowerSpacing, err := parseInputToFloat(doc.Call("getElementById", "towerSpacing").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.tower_spacing.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.tower_spacing.format").String(), true
 	} else if docTowerSpacing < 40 {
-		errorString = errorString + lang.Call("getString", "error.tower_spacing.too_small").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.tower_spacing.too_small").String(), true
 	} else if docTowerSpacing > bedX-40.0 {
-		errorString = errorString + lang.Call("getString", "error.tower_spacing.too_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.tower_spacing.too_big").String(), true
 	} else {
 		towerSpacing = docTowerSpacing
+	}
+	setErrorDescription(doc, lang, "table.tower_spacing.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 
 	docZOffset, err := parseInputToFloat(doc.Call("getElementById", "zOffset").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.z_offset.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.z_offset.format").String(), true
 	} else if docZOffset < -layerHeight || docZOffset > layerHeight {
-		errorString = errorString + lang.Call("getString", "error.z_offset.too_big").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.z_offset.too_big").String(), true
 	} else {
 		zOffset = docZOffset
+	}
+	setErrorDescription(doc, lang, "table.z_offset.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 	
 	docFlow, err := parseInputToInt(doc.Call("getElementById", "flow").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.flow.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.flow.format").String(), true
 	} else if docFlow < 50 || docFlow > 150 {
-		errorString = errorString + lang.Call("getString", "error.flow.low_or_high").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.flow.low_or_high").String(), true
 	} else {
 		flow = docFlow
+	}
+	setErrorDescription(doc, lang, "table.flow.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 	
 	docKFactor, err := parseInputToFloat(doc.Call("getElementById", "kFactor2").Get("value").String())
 	if err != nil {
-		errorString = errorString + lang.Call("getString", "error.k_factor.format").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.k_factor.format").String(), true
 	} else if docKFactor < 0.0 || docKFactor > 2.0 {
-		errorString = errorString + lang.Call("getString", "error.k_factor.too_high").String() + "\n"
+		curErr, hasErr = lang.Call("getString", "error.k_factor.too_high").String(), true
 	} else {
 		kFactor = docKFactor
+	}
+	setErrorDescription(doc, lang, "table.k_factor.description", curErr, hasErr)
+	if hasErr {
+		errorString = errorString + curErr + "\n"
+		hasErr = false
 	}
 	
 	docMarlin := doc.Call("getElementById", "firmwareMarlin").Get("checked").Bool()
@@ -259,6 +377,10 @@ func check() bool {
 	
 	startGcode = doc.Call("getElementById", "startGcode").Get("innerHTML").String()
 	endGcode = doc.Call("getElementById", "endGcode").Get("innerHTML").String()
+	
+	if !showErrorBox {
+		return true
+	}
 
 	// end check of parameters
 	if errorString == "" {
@@ -271,9 +393,14 @@ func check() bool {
 	}
 }
 
+func checkJs(this js.Value, i []js.Value) interface{} {
+	check(false)
+	return js.ValueOf(nil)
+}
+
 func generate(this js.Value, i []js.Value) interface{} {
 	// check and initialize variables
-	if check() {
+	if check(true) {
 		lang := js.Global().Get("lang")
 		segmentStr := lang.Call("getString", "generator.segment").String()
 		

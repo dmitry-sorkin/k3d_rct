@@ -116,7 +116,10 @@ function loadForm() {
 function initForm() {
     for (var elementId of formFields) {
         var element = document.getElementById(elementId);
-        element.onchange = saveForm;
+        element.onchange = function() {
+			checkGo();
+			saveForm();
+		};
     }
     loadForm();
 }
@@ -398,4 +401,12 @@ function init() {
 		}
 	};
 	initLang(lang);
+	
+	setTimeout(function() {
+		if (checkGo != undefined && window.lang != undefined) {
+			checkGo();
+		} else {
+			setTimeout(this, 100);
+		}
+	}, 100);
 }
