@@ -1,4 +1,4 @@
-const calibrator_version = 'v1.6';
+const calibrator_version = 'v1.6.3';
 window.calibrator_version = calibrator_version;
 
 function download(filename, text) {
