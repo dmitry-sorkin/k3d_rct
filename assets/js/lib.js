@@ -1,5 +1,6 @@
 const calibrator_version = 'v1.6.3';
 window.calibrator_version = calibrator_version;
+var savedSegmentsInfo = null;
 
 function download(filename, text) {
     var element = document.createElement('a');
@@ -78,6 +79,20 @@ var formFields = [
     "firmwareKlipper",
     "firmwareRRF",
 ];
+var segmentFields = [
+    "initRetractLength",
+    "endRetractLength",
+    "initRetractSpeed",
+    "endRetractSpeed",
+    "numSegments",
+];
+var segmentKeys = [
+	"init_retract_length",
+	"end_retract_length",
+	"init_retract_speed",
+	"end_retract_speed",
+	"num_segments",
+];
 
 var saveForm = function () {
     for (var elementId of formFields) {
@@ -114,14 +129,33 @@ function loadForm() {
 }
 
 function initForm() {
+	loadForm();
     for (var elementId of formFields) {
         var element = document.getElementById(elementId);
-        element.onchange = function() {
-			checkGo();
+        element.addEventListener('change', function(e) {
 			saveForm();
-		};
+			
+			var el = e.target;
+			var id = el.id;
+			
+			if (segmentFields.indexOf(id) != -1) {
+				checkSegments();
+			} else {
+				checkGo();
+			}
+		});
     }
-    loadForm();
+	for (var elementId of segmentFields) {
+		var element = document.getElementById(elementId);
+		element.addEventListener('focusin', function(e) {
+			checkSegments();
+		});
+		element.addEventListener('focusout', function(e) {
+			if (e.relatedTarget == undefined || segmentFields.indexOf(e.relatedTarget.id) == -1) {
+				checkGo();
+			}
+		});
+	}
 }
 
 function initLang(key) {
@@ -487,6 +521,32 @@ function initLang(key) {
 	document.getElementsByClassName('reset-button')[0].innerHTML = window.lang.getString('generator.reset_to_default');
 	document.getElementsByClassName('navbar-direction')[0].innerHTML = window.lang.getString('navbar.back');
 	document.getElementById('generateButtonLoading').innerHTML = window.lang.getString('generator.generate_button_loading');
+}
+
+function setSegmentsPreview(segments) {
+	savedSegmentsInfo = segments;
+	setSegmentsPreviewVisible(true);
+}
+
+function setSegmentsPreviewVisible(visible) {
+	if (savedSegmentsInfo == null || savedSegmentsInfo == undefined) {
+		visible = false;
+	}
+	if (visible) {
+		document.getElementById('table.' + segmentKeys[0] + '.description').rowSpan = segmentKeys.length;
+		document.getElementById('table.' + segmentKeys[0] + '.description').innerHTML = '<span>' + savedSegmentsInfo.replaceAll('\n', '<br>') + '</span>';
+		
+		for (var i = 1; i < segmentKeys.length; i++) {
+			document.getElementById('table.' + segmentKeys[i] + '.description').style.display = 'none';
+		}
+	} else {
+		document.getElementById('table.' + segmentKeys[0] + '.description').rowSpan = 1;
+		for (var i = 0; i < segmentKeys.length; i++) {
+			var id = 'table.' + segmentKeys[i] + '.description';
+			document.getElementById(id).style.display = '';
+			document.getElementById(id).innerHTML = window.lang.getString(id);
+		}
+	}
 }
 
 function reset() {
