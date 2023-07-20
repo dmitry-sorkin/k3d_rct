@@ -33,17 +33,24 @@ func main() {
 func registerFunctions() {
 	js.Global().Set("generate", js.FuncOf(generate))
 	js.Global().Set("checkGo", js.FuncOf(checkJs))
+	js.Global().Set("checkSegments", js.FuncOf(checkSegments))
 }
 
-func setErrorDescription(doc js.Value, lang js.Value, key string, curErr string, hasErr bool) {
+func setErrorDescription(doc js.Value, lang js.Value, key string, curErr string, hasErr bool, allowModify bool) {
+	if !allowModify {
+		return
+	}
+	el := doc.Call("getElementById", key)
+	el.Get("style").Set("display", "")
+	el.Set("rowSpan", "1")
 	if hasErr {
-		doc.Call("getElementById", key).Set("innerHTML", lang.Call("getString", key).String() + "<br><span class=\"inline-error\">" + curErr + "</span>")
+		el.Set("innerHTML", lang.Call("getString", key).String() + "<br><span class=\"inline-error\">" + curErr + "</span>")
 	} else {
-		doc.Call("getElementById", key).Set("innerHTML", lang.Call("getString", key).String())
+		el.Set("innerHTML", lang.Call("getString", key).String())
 	}
 }
 
-func check(showErrorBox bool) bool {
+func check(showErrorBox bool, allowModify bool) bool {
 	errorString := ""
 	doc := js.Global().Get("document")
 	lang := js.Global().Get("lang")
@@ -52,6 +59,7 @@ func check(showErrorBox bool) bool {
 	// Fill variables with data from web page
 	curErr := ""
 	hasErr := false
+	retErr := false
 	
 	docBedX, err := parseInputToFloat(doc.Call("getElementById", "bedX").Get("value").String())
 	if err != nil {
@@ -62,10 +70,11 @@ func check(showErrorBox bool) bool {
 		bedX = docBedX
 	}
 	
-	setErrorDescription(doc, lang, "table.bed_size_x.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.bed_size_x.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docBedY, err := parseInputToFloat(doc.Call("getElementById", "bedY").Get("value").String())
@@ -76,10 +85,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		bedY = docBedY
 	}
-	setErrorDescription(doc, lang, "table.bed_size_y.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.bed_size_y.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	delta = doc.Call("getElementById", "delta").Get("checked").Bool()
@@ -96,10 +106,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		hotendTemperature = docHotTemp
 	}
-	setErrorDescription(doc, lang, "table.hotend_temp.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.hotend_temp.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docBedTemp, err := parseInputToInt(doc.Call("getElementById", "bedTemperature").Get("value").String())
@@ -110,10 +121,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		bedTemperature = docBedTemp
 	}
-	setErrorDescription(doc, lang, "table.bed_temp.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.bed_temp.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docCooling, err := parseInputToInt(doc.Call("getElementById", "cooling").Get("value").String())
@@ -128,10 +140,11 @@ func check(showErrorBox bool) bool {
 		}
 		cooling = docCooling
 	}
-	setErrorDescription(doc, lang, "table.fan_speed.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.fan_speed.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docLineWidth, err := parseInputToFloat(doc.Call("getElementById", "lineWidth").Get("value").String())
@@ -142,10 +155,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		lineWidth = docLineWidth
 	}
-	setErrorDescription(doc, lang, "table.line_width.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.line_width.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docFirstLineWidth, err := parseInputToFloat(doc.Call("getElementById", "firstLayerLineWidth").Get("value").String())
@@ -156,10 +170,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		firstLayerLineWidth = docFirstLineWidth
 	}
-	setErrorDescription(doc, lang, "table.first_line_width.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.first_line_width.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docLayerHeight, err := parseInputToFloat(doc.Call("getElementById", "layerHeight").Get("value").String())
@@ -170,10 +185,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		layerHeight = docLayerHeight
 	}
-	setErrorDescription(doc, lang, "table.layer_height.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.layer_height.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docPrintSpeed, err := parseInputToFloat(doc.Call("getElementById", "printSpeed").Get("value").String())
@@ -184,10 +200,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		printSpeed = docPrintSpeed
 	}
-	setErrorDescription(doc, lang, "table.print_speed.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.print_speed.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docFirstPrintSpeed, err := parseInputToFloat(doc.Call("getElementById", "firstLayerPrintSpeed").Get("value").String())
@@ -198,10 +215,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		firstLayerPrintSpeed = docFirstPrintSpeed
 	}
-	setErrorDescription(doc, lang, "table.first_print_speed.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.first_print_speed.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docTravelSpeed, err := parseInputToFloat(doc.Call("getElementById", "travelSpeed").Get("value").String())
@@ -212,10 +230,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		travelSpeed = docTravelSpeed
 	}
-	setErrorDescription(doc, lang, "table.travel_speed.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.travel_speed.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docNumSegments, err := parseInputToInt(doc.Call("getElementById", "numSegments").Get("value").String())
@@ -226,10 +245,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		numSegments = docNumSegments
 	}
-	setErrorDescription(doc, lang, "table.num_segments.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.num_segments.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docInitRetractLength, err := parseInputToFloat(doc.Call("getElementById", "initRetractLength").Get("value").String())
@@ -241,10 +261,11 @@ func check(showErrorBox bool) bool {
 		retractLength = docInitRetractLength
 		initRetractLength = docInitRetractLength
 	}
-	setErrorDescription(doc, lang, "table.init_retract_length.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.init_retract_length.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docEndRetractLength, err := parseInputToFloat(doc.Call("getElementById", "endRetractLength").Get("value").String())
@@ -255,10 +276,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		retractLengthDelta = (docInitRetractLength - docEndRetractLength) / float64(numSegments-1)
 	}
-	setErrorDescription(doc, lang, "table.end_retract_length.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.end_retract_length.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docRetractSpeed, err := parseInputToFloat(doc.Call("getElementById", "initRetractSpeed").Get("value").String())
@@ -270,10 +292,11 @@ func check(showErrorBox bool) bool {
 		retractSpeed = docRetractSpeed
 		initRetractSpeed = docRetractSpeed
 	}
-	setErrorDescription(doc, lang, "table.init_retract_speed.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.init_retract_speed.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docEndRetractSpeed, err := parseInputToFloat(doc.Call("getElementById", "endRetractSpeed").Get("value").String())
@@ -284,10 +307,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		retractSpeedDelta = (docRetractSpeed - docEndRetractSpeed) / float64(numSegments-1)
 	}
-	setErrorDescription(doc, lang, "table.end_retract_speed.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.end_retract_speed.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docSegmentHeight, err := parseInputToFloat(doc.Call("getElementById", "segmentHeight").Get("value").String())
@@ -298,10 +322,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		segmentHeight = docSegmentHeight
 	}
-	setErrorDescription(doc, lang, "table.segment_height.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.segment_height.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docTowerSpacing, err := parseInputToFloat(doc.Call("getElementById", "towerSpacing").Get("value").String())
@@ -314,10 +339,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		towerSpacing = docTowerSpacing
 	}
-	setErrorDescription(doc, lang, "table.tower_spacing.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.tower_spacing.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 
 	docZOffset, err := parseInputToFloat(doc.Call("getElementById", "zOffset").Get("value").String())
@@ -328,10 +354,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		zOffset = docZOffset
 	}
-	setErrorDescription(doc, lang, "table.z_offset.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.z_offset.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 	
 	docFlow, err := parseInputToInt(doc.Call("getElementById", "flow").Get("value").String())
@@ -342,10 +369,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		flow = docFlow
 	}
-	setErrorDescription(doc, lang, "table.flow.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.flow.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 	
 	docKFactor, err := parseInputToFloat(doc.Call("getElementById", "kFactor2").Get("value").String())
@@ -356,10 +384,11 @@ func check(showErrorBox bool) bool {
 	} else {
 		kFactor = docKFactor
 	}
-	setErrorDescription(doc, lang, "table.k_factor.description", curErr, hasErr)
+	setErrorDescription(doc, lang, "table.k_factor.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
 		hasErr = false
+		retErr = true
 	}
 	
 	docMarlin := doc.Call("getElementById", "firmwareMarlin").Get("checked").Bool()
@@ -379,11 +408,11 @@ func check(showErrorBox bool) bool {
 	endGcode = doc.Call("getElementById", "endGcode").Get("innerHTML").String()
 	
 	if !showErrorBox {
-		return true
+		return !retErr
 	}
 
 	// end check of parameters
-	if errorString == "" {
+	if !retErr {
 		println("OK")
 		return true
 	} else {
@@ -393,14 +422,36 @@ func check(showErrorBox bool) bool {
 	}
 }
 
+func checkSegments(this js.Value, i []js.Value) interface{} {
+	if (check(false, false)) {
+		lang := js.Global().Get("lang")
+		segmentStr := lang.Call("getString", "generator.segment").String()
+		
+		// generate calibration parameters
+		caliParams := ""
+		for i := numSegments - 1; i >= 0; i-- {
+			caliParams = caliParams + fmt.Sprintf(segmentStr,
+				i+1,
+				fmt.Sprint(roundFloat(initRetractLength-retractLengthDelta*float64(i), 2)),
+				fmt.Sprint(roundFloat(initRetractSpeed-retractSpeedDelta*float64(i), 2)))
+		}
+		
+		js.Global().Call("setSegmentsPreview", caliParams)
+	} else {
+		js.Global().Call("setSegmentsPreview", js.ValueOf(nil))
+		check(false, true)
+	}
+	return js.ValueOf(nil)
+}
+
 func checkJs(this js.Value, i []js.Value) interface{} {
-	check(false)
+	check(false, true)
 	return js.ValueOf(nil)
 }
 
 func generate(this js.Value, i []js.Value) interface{} {
 	// check and initialize variables
-	if check(true) {
+	if check(true, false) {
 		lang := js.Global().Get("lang")
 		segmentStr := lang.Call("getString", "generator.segment").String()
 		
