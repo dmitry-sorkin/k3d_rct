@@ -1,4 +1,4 @@
-const calibrator_version = 'v1.6.3';
+const calibrator_version = 'v1.7';
 window.calibrator_version = calibrator_version;
 var savedSegmentsInfo = null;
 
@@ -214,7 +214,7 @@ function initLang(key) {
 			values['table.segment_height.title'] = 'Segmenthöhe';
 			values['table.segment_height.description'] = '[mm] Höhe der einzelnen Segmente der Türmchen. Zum Beispiel: Wenn Segmenthöhe 3mm und Anzahl der Segmente 10 ist, beträgt die Gesamthöhe der Türmchen 30mm.';
 			values['table.k_factor.title'] = 'Linear Advance (K-Faktor)';
-			values['table.k_factor.description'] = 'Tragen Sie Ihren Wert für Linear/Pressure Advance. Wenn Sie es nicht benutzen oder nicht wissen, was Linear/Pressure Advance bedeutet, lassen es bei null.';
+			values['table.k_factor.description'] = 'Tragen Sie Ihren Wert für Linear/Pressure Advance. Wenn Sie es nicht benutzen oder nicht wissen, was Linear/Pressure Advance bedeutet, lassen Sie es bei null.';
 			values['table.tower_spacing.title'] = 'Abstand zwischen den Türmchen';
 			values['table.tower_spacing.description'] = '[mm] In der Regel reichen 100mm. Für großflächige Drucker, die oft große Modelle drucken, wird ungefähr die Hälfte der längeren Seite des Druckbettes empfohlen.';
 			values['table.firmware.title'] = 'Firmware';
