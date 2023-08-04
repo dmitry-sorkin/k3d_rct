@@ -1,4 +1,4 @@
-const calibrator_version = 'v1.7';
+const calibrator_version = 'v1.8';
 window.calibrator_version = calibrator_version;
 var savedSegmentsInfo = null;
 
@@ -78,6 +78,7 @@ var formFields = [
     "firmwareMarlin",
     "firmwareKlipper",
     "firmwareRRF",
+	"hardmode",
 ];
 var segmentFields = [
     "initRetractLength",
@@ -99,7 +100,7 @@ var saveForm = function () {
         var element = document.getElementById(elementId);
         if (element) {
             var saveValue = element.value;
-            if (elementId == 'delta' || elementId == 'bedProbe' || elementId == 'firmwareMarlin' || elementId == 'firmwareKlipper' || elementId == 'firmwareRRF') {
+            if (elementId == 'delta' || elementId == 'bedProbe' || elementId == 'firmwareMarlin' || elementId == 'firmwareKlipper' || elementId == 'firmwareRRF' || elementId == 'hardmode') {
                 saveValue = element.checked;
             }
             localStorage.setItem(elementId, saveValue);
@@ -116,7 +117,7 @@ function loadForm() {
 
         var element = document.getElementById(elementId);
         if (element) {
-            if (elementId == 'delta' || elementId == 'bedProbe' || elementId == 'firmwareMarlin' || elementId == 'firmwareKlipper' || elementId == 'firmwareRRF') {
+            if (elementId == 'delta' || elementId == 'bedProbe' || elementId == 'firmwareMarlin' || elementId == 'firmwareKlipper' || elementId == 'firmwareRRF' || elementId == 'hardmode') {
 				element.checked = loadValue == 'true';
             } else {
                 if (loadValue != null) {
@@ -176,9 +177,9 @@ function initLang(key) {
 			values['table.bed_size_y.title'] = 'Druckbettgröße an der Y-Achse';
 			values['table.bed_size_y.description'] = '[mm] Für kartesische Drucker - Maximalkoordinate an der Y-Achse<br>Für Delta-Drucker - <b>Durchmesser des Druckbettes</b>';
 			values['table.z_offset.title'] = 'Z-offset';
-			values['table.z_offset.description'] = '[mm] Vertikale verschiebung der Türmchen. Damit kann zu dünne oder zu dicke erste Schicht ausgeglichen werden. Allgemein lassen Sie es bei null.';
+			values['table.z_offset.description'] = '[mm] Vertikale verschiebung der Türmchen. Damit kann zu dünne oder zu dicke erste Schicht ausgeglichen werden. Allgemein lassen Sie es bei null';
 			values['table.delta.title'] = 'Nullpunkt in der Mitte des Druckbettes';
-			values['table.delta.description'] = 'Für kartesische Drucker muss abgeschaltet sein, für Delta - eingeschaltet. Momentan ist diese Funktion noch nicht ausreichend getestet.';
+			values['table.delta.description'] = 'Für kartesische Drucker muss abgeschaltet sein, für Delta - eingeschaltet';
 			values['table.bed_probe.title'] = 'Autokalibrierung';
 			values['table.bed_probe.description'] = 'Soll vor dem Drucken Autokalibrierung (G29) durchgeführt werden? Lassen Sie es ausgeschaltet, falls nicht gewünscht oder kein Sensor (BL Tuch o.ä.) vorhanden.';
 			values['table.hotend_temp.title'] = 'Drucktemperatur';
@@ -223,6 +224,8 @@ function initLang(key) {
 			values['table.start_gcode.description'] = 'G-Code, welches vor dem Drucken ausgeführt wird. Änderungen auf eigenes Risiko! Keine Haftung bei Schäden! Liste möglicher Platzhalter:<br><b>$LA</b> - Kompletter Installationsbefehl Faktor LA/PA<br><b>$BEDTEMP</b> - Druckbetttemperatur<br><b>$HOTTEMP</b> - Extrudertemperatur<br><b>$G29</b> - Befehl zum Abtasten des Druckbettes<br><b>$FLOW</b> - Fluss';
 			values['table.end_gcode.title'] = 'End G-Code';
 			values['table.end_gcode.description'] = 'G-Code, welches nach dem Drucken ausgeführt wird. Änderungen auf eigenes Risiko! Keine Haftung bei Schäden!';
+			values['table.hardmode.title'] = 'harter Modus';
+			values['table.hardmode.description'] = 'Im Normalmodus (der Parameter ist deaktiviert) wird die Druckreihenfolge des Turms mit Optimierungen wie in einem Slicer generiert, im erweiterten Modus durch eine nicht optimale Methode. Es wird empfohlen, es nur dann einzuschalten, wenn der Normalmodus zu optimistische Ergebnisse liefert. Lesen Sie mehr in der Anleitung'
 			
 			values['generator.generate_and_download'] = 'Generieren und Herunterladen';		
 			values['generator.generate_button_loading'] = 'G-Code wird generiert...';		
@@ -292,11 +295,11 @@ function initLang(key) {
 			values['table.bed_size_y.title'] = 'Bed size Y';
 			values['table.bed_size_y.description'] = '[mm] For cartesian printers - maximum Y coordinate<br>For delta-printers - <b>bed diameter</b>';
 			values['table.z_offset.title'] = 'Z-offset';
-			values['table.z_offset.description'] = '[mm] Offset the entire model vertically. It is necessary to compensate for too thin / thick first layer calibration. Leave zero in general.';
+			values['table.z_offset.description'] = '[mm] Offset the entire model vertically. It is necessary to compensate for too thin / thick first layer calibration. Leave zero in general';
 			values['table.delta.title'] = 'Origin at the center of the bed';
-			values['table.delta.description'] = 'Must be disabled for cartesian printers, enabled for deltas. This mode has not been tested yet.';
+			values['table.delta.description'] = 'Must be disabled for cartesian printers, enabled for deltas';
 			values['table.bed_probe.title'] = 'Bed auto-calibration';
-			values['table.bed_probe.description'] = 'Enables bed auto-calibration before printing (G29)? If you don\'t have bed probe, then leave it off.';
+			values['table.bed_probe.description'] = 'Enables bed auto-calibration before printing (G29)? If you don\'t have bed probe, then leave it off';
 			values['table.hotend_temp.title'] = 'Hotend temperature';
 			values['table.hotend_temp.description'] = '[°C] The temperature to which to heat the hotend before printing';
 			values['table.bed_temp.title'] = 'Bed temperature';
@@ -337,6 +340,8 @@ function initLang(key) {
 			values['table.start_gcode.description'] = 'The code that is executed before test. Change at your own risk! List of possible placeholders:<br><b>$LA</b> - full command to set the k-factor for LA/PA<br><b>$BEDTEMP</b> - bed temperature<br><b>$HOTTEMP</b> - hotend temperature<br><b>$G29</b> - bed heightmap command<br><b>$FLOW</b> - flow';
 			values['table.end_gcode.title'] = 'End G-Code';
 			values['table.end_gcode.description'] = 'The code that is executed after the test. Change at your own risk!';
+			values['table.hardmode.title'] = 'Hardmode';
+			values['table.hardmode.description'] = 'In the normal mode (the parameter is disabled), the tower printing order is generated with optimizations like in a slicer, in the advanced mode - by a non-optimal method. It is recommended to turn it on only when the normal mode shows too optimistic result. Read more in the instructions'
 			
 			values['generator.generate_and_download'] = 'Generate and download';		
 			values['generator.generate_button_loading'] = 'Generator loading...';		
@@ -455,6 +460,8 @@ function initLang(key) {
 			values['table.start_gcode.description'] = 'Код, выполняемый перед печатью теста. Менять на свой страх и риск! Список возможных плейсхолдеров:<br><b>$LA</b> - полная команда на установку к-фактора LA/PA<br><b>$BEDTEMP</b> - температура стола<br><b>$HOTTEMP</b> - температура хотэнда<br><b>$G29</b> - команда на снятие карты высот стола<br><b>$FLOW</b> - поток';
 			values['table.end_gcode.title'] = 'Конечный G-код';
 			values['table.end_gcode.description'] = 'Код, выполняемый после печати теста. Менять на свой страх и риск!';
+			values['table.hardmode.title'] = 'Усложненный режим';
+			values['table.hardmode.description'] = 'В обычном режиме (параметр выключен) порядок печати башен генерируется с оптимизациями как в слайсере, в усложненном - неоптимальным методом. Рекомендуется включать только тогда, когда обычный режим показывает слишком оптимистичный результат. Подробнее в инструкции';
 			
 			values['generator.generate_and_download'] = 'Генерировать и скачать';		
 			values['generator.generate_button_loading'] = 'Генератор загружается...';		
