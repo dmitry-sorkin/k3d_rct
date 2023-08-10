@@ -14,7 +14,7 @@ var (
 	bedX, bedY, lineWidth, firstLayerLineWidth, printSpeed, travelSpeed, layerHeight, initRetractLength, retractLength, retractLengthDelta, currentE, firstLayerPrintSpeed, segmentHeight, towerSpacing, towerWidth, zOffset, initRetractSpeed, retractSpeed, currentSpeed, retractSpeedDelta, kFactor float64
 	hotendTemperature, bedTemperature, numSegments, cooling, flow, firmware                                                                                                                                                                                                                            int
 	currentCoordinates                                                                                                                                                                                                                                                                                 Point
-	bedProbe, retracted, delta                                                                                                                                                                                                                                                                         bool
+	bedProbe, retracted, delta, hardmode                                                                                                                                                                                                                                                               bool
 	startGcode, endGcode                                                                                                                                                                                                                                                                               string
 )
 
@@ -44,7 +44,7 @@ func setErrorDescription(doc js.Value, lang js.Value, key string, curErr string,
 	el.Get("style").Set("display", "")
 	el.Set("rowSpan", "1")
 	if hasErr {
-		el.Set("innerHTML", lang.Call("getString", key).String() + "<br><span class=\"inline-error\">" + curErr + "</span>")
+		el.Set("innerHTML", lang.Call("getString", key).String()+"<br><span class=\"inline-error\">"+curErr+"</span>")
 	} else {
 		el.Set("innerHTML", lang.Call("getString", key).String())
 	}
@@ -60,7 +60,7 @@ func check(showErrorBox bool, allowModify bool) bool {
 	curErr := ""
 	hasErr := false
 	retErr := false
-	
+
 	docBedX, err := parseInputToFloat(doc.Call("getElementById", "bedX").Get("value").String())
 	if err != nil {
 		curErr, hasErr = lang.Call("getString", "error.bed_size_x.format").String(), true
@@ -69,7 +69,7 @@ func check(showErrorBox bool, allowModify bool) bool {
 	} else {
 		bedX = docBedX
 	}
-	
+
 	setErrorDescription(doc, lang, "table.bed_size_x.description", curErr, hasErr, allowModify)
 	if hasErr {
 		errorString = errorString + curErr + "\n"
@@ -115,7 +115,7 @@ func check(showErrorBox bool, allowModify bool) bool {
 
 	docBedTemp, err := parseInputToInt(doc.Call("getElementById", "bedTemperature").Get("value").String())
 	if err != nil {
-		curErr, hasErr = lang.Call("getString", "error.bed_temp.format").String() + err.Error(), true
+		curErr, hasErr = lang.Call("getString", "error.bed_temp.format").String()+err.Error(), true
 	} else if docBedTemp > 150 {
 		curErr, hasErr = lang.Call("getString", "error.bed_temp.too_high").String(), true
 	} else {
@@ -360,7 +360,7 @@ func check(showErrorBox bool, allowModify bool) bool {
 		hasErr = false
 		retErr = true
 	}
-	
+
 	docFlow, err := parseInputToInt(doc.Call("getElementById", "flow").Get("value").String())
 	if err != nil {
 		curErr, hasErr = lang.Call("getString", "error.flow.format").String(), true
@@ -375,7 +375,7 @@ func check(showErrorBox bool, allowModify bool) bool {
 		hasErr = false
 		retErr = true
 	}
-	
+
 	docKFactor, err := parseInputToFloat(doc.Call("getElementById", "kFactor2").Get("value").String())
 	if err != nil {
 		curErr, hasErr = lang.Call("getString", "error.k_factor.format").String(), true
@@ -390,7 +390,7 @@ func check(showErrorBox bool, allowModify bool) bool {
 		hasErr = false
 		retErr = true
 	}
-	
+
 	docMarlin := doc.Call("getElementById", "firmwareMarlin").Get("checked").Bool()
 	docKlipper := doc.Call("getElementById", "firmwareKlipper").Get("checked").Bool()
 	docRRF := doc.Call("getElementById", "firmwareRRF").Get("checked").Bool()
@@ -403,10 +403,12 @@ func check(showErrorBox bool, allowModify bool) bool {
 	} else {
 		errorString = errorString + lang.Call("getString", "error.firmware.not_set").String() + "\n"
 	}
-	
+
+	hardmode = doc.Call("getElementById", "hardmode").Get("checked").Bool()
+
 	startGcode = doc.Call("getElementById", "startGcode").Get("innerHTML").String()
 	endGcode = doc.Call("getElementById", "endGcode").Get("innerHTML").String()
-	
+
 	if !showErrorBox {
 		return !retErr
 	}
@@ -423,10 +425,10 @@ func check(showErrorBox bool, allowModify bool) bool {
 }
 
 func checkSegments(this js.Value, i []js.Value) interface{} {
-	if (check(false, false)) {
+	if check(false, false) {
 		lang := js.Global().Get("lang")
 		segmentStr := lang.Call("getString", "generator.segment").String()
-		
+
 		// generate calibration parameters
 		caliParams := ""
 		for i := numSegments - 1; i >= 0; i-- {
@@ -435,7 +437,7 @@ func checkSegments(this js.Value, i []js.Value) interface{} {
 				fmt.Sprint(roundFloat(initRetractLength-retractLengthDelta*float64(i), 2)),
 				fmt.Sprint(roundFloat(initRetractSpeed-retractSpeedDelta*float64(i), 2)))
 		}
-		
+
 		js.Global().Call("setSegmentsPreview", caliParams)
 	} else {
 		js.Global().Call("setSegmentsPreview", js.ValueOf(nil))
@@ -454,7 +456,7 @@ func generate(this js.Value, i []js.Value) interface{} {
 	if check(true, false) {
 		lang := js.Global().Get("lang")
 		segmentStr := lang.Call("getString", "generator.segment").String()
-		
+
 		// generate calibration parameters
 		caliParams := ""
 		for i := numSegments - 1; i >= 0; i-- {
@@ -466,19 +468,29 @@ func generate(this js.Value, i []js.Value) interface{} {
 
 		gcode := make([]string, 0, 1)
 		// gcode initialization
-		gcode = append(gcode, "; generated by K3D Retraction calibration towers generator ",
-			js.Global().Get("calibrator_version").String(),
-			"\n",
-			"; Written by Dmitry Sorkin @ http://k3d.tech/\n",
-			"; and Kekht\n",
-			fmt.Sprintf(";Bedsize: %f:%f\n", bedX, bedY),
-			fmt.Sprintf(";Temp: %d/%d\n", hotendTemperature, bedTemperature),
-			fmt.Sprintf(";Width: %f-%f\n", lineWidth, firstLayerLineWidth),
-			fmt.Sprintf(";Layer height: %f\n", layerHeight),
-			fmt.Sprintf(";Retract length: %f, -%f/segment\n", retractLength, retractLengthDelta),
-			fmt.Sprintf(";Segments: %dx%f mm\n", numSegments, segmentHeight),
+
+		gcode = append(gcode, "; generated by K3D Retraction calibration towers generator ", js.Global().Get("calibrator_version").String(), "\n",
+			"; Written by Dmitry Sorkin @ http://k3d.tech/, Kekht and YTKAB0BP\n",
+			fmt.Sprintf(";Bedsize: %s:%s [mm]\n", fmt.Sprint(roundFloat(bedX, 1)), fmt.Sprint(roundFloat(bedY, 1))),
+			fmt.Sprintf(";Firmware (0-Marlin, 1-Klipper, 2-RRF): %d\n", firmware),
+			fmt.Sprintf(";Z-offset: %s [mm]\n", fmt.Sprint(roundFloat(zOffset, 3))),
+			fmt.Sprintf(";Delta: %s\n", strconv.FormatBool(delta)),
+			fmt.Sprintf(";G29: %s\n", strconv.FormatBool(bedProbe)),
+			fmt.Sprintf(";Temp: %d/%d [°C]\n", hotendTemperature, bedTemperature),
+			fmt.Sprintf(";Flow: %d\n", flow),
+			fmt.Sprintf(";Fan: %s\n", fmt.Sprint(roundFloat(float64(cooling)/2.55, 1))),
+			fmt.Sprintf(";Line width: %s [mm]\n", fmt.Sprint(roundFloat(lineWidth, 2))),
+			fmt.Sprintf(";First layer line width: %s [mm]\n", fmt.Sprint(roundFloat(lineWidth, 2))),
+			fmt.Sprintf(";Layer height: %s [mm]\n", fmt.Sprint(roundFloat(layerHeight, 2))),
+			fmt.Sprintf(";Print speed: %s [mm/s]\n", fmt.Sprint(roundFloat(printSpeed, 2))),
+			fmt.Sprintf(";First layer print speed: %s [mm/s]\n", fmt.Sprint(roundFloat(firstLayerPrintSpeed, 2))),
+			fmt.Sprintf(";Travel speed: %s [mm/s]\n", fmt.Sprint(roundFloat(travelSpeed, 2))),
+			fmt.Sprintf(";K-Factor: %s [s]\n", fmt.Sprint(roundFloat(kFactor, 2))),
+			fmt.Sprintf(";Segment height: %s [mm]\n", fmt.Sprint(roundFloat(segmentHeight, 2))),
+			fmt.Sprintf(";Towers spacing: %s [mm]\n", fmt.Sprint(roundFloat(towerSpacing, 2))),
+			fmt.Sprintf(";Hardmode: %s\n", strconv.FormatBool(hardmode)),
 			caliParams)
-			
+
 		var g29 string
 		if bedProbe {
 			g29 = "G29"
@@ -487,7 +499,7 @@ func generate(this js.Value, i []js.Value) interface{} {
 		}
 		replacer := strings.NewReplacer("$LA", generateLACommand(kFactor), "$BEDTEMP", strconv.Itoa(bedTemperature), "$HOTTEMP", strconv.Itoa(hotendTemperature), "$G29", g29, "$FLOW", strconv.Itoa(flow))
 		gcode = append(gcode, replacer.Replace(startGcode), "\n")
-		
+
 		gcode = append(gcode, "M82\n", fmt.Sprintf("M106 S%d\n", int(cooling/3)))
 
 		// generate first layer
@@ -517,7 +529,7 @@ func generate(this js.Value, i []js.Value) interface{} {
 
 		// move Z to first layer coordinates
 		gcode = append(gcode, fmt.Sprintf("G1 Z%s F450\n", fmt.Sprint(roundFloat(layerHeight+zOffset, 2))))
-		currentSpeed = 450/60
+		currentSpeed = 450 / 60
 
 		// make printer think, that he is on layerHeight
 		gcode = append(gcode, fmt.Sprintf("G92 Z%s\n", fmt.Sprint(roundFloat(layerHeight, 2))))
@@ -589,9 +601,11 @@ func generate(this js.Value, i []js.Value) interface{} {
 			// interchange tower centers on odd layers
 			firstTowerCenter := rightTowerCenter
 			secondTowerCenter := leftTowerCenter
-			if i%2 == 0 {
-				firstTowerCenter = leftTowerCenter
-				secondTowerCenter = rightTowerCenter
+			if !hardmode {
+				if i%2 == 0 {
+					firstTowerCenter = leftTowerCenter
+					secondTowerCenter = rightTowerCenter
+				}
 			}
 
 			// generate first tower trajectory
@@ -608,7 +622,7 @@ func generate(this js.Value, i []js.Value) interface{} {
 
 			// move to new layer
 			gcode = append(gcode, fmt.Sprintf("G1 Z%s F300\n", fmt.Sprint(roundFloat(currentCoordinates.Z, 2))))
-			currentSpeed = 300/60
+			currentSpeed = 300 / 60
 
 			// print first tower
 			for i := 1; i < len(trajectory); i++ {
@@ -635,7 +649,6 @@ func generate(this js.Value, i []js.Value) interface{} {
 
 		// end gcode
 		gcode = append(gcode, ";end gcode\n", replacer.Replace(endGcode))
-
 
 		outputGCode := ""
 		for i := 0; i < len(gcode); i++ {
@@ -788,7 +801,6 @@ func generateZigZagTrajectory(towerCenter Point, lineWidth float64) []Point {
 	}
 
 	// add Z coordinates
-
 	for i := 1; i < len(unsortedPoints); i++ {
 		unsortedPoints[i].Z = currentCoordinates.Z
 	}

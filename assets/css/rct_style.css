@@ -45,6 +45,7 @@ table {
     margin-bottom: 20px;
     border-collapse: disabled;
     border-spacing: 10px;
+    max-width: 1600px;
 }
 
 th {
