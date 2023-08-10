@@ -79,6 +79,8 @@ var formFields = [
     "firmwareKlipper",
     "firmwareRRF",
 	"hardmode",
+	"startGcode",
+	"endGcode",
 ];
 var segmentFields = [
     "initRetractLength",
@@ -415,7 +417,7 @@ function initLang(key) {
 			values['table.z_offset.title'] = 'Z-offset';
 			values['table.z_offset.description'] = '[мм] Смещение всей модели по вертикали. Нужно чтобы компенсировать слишком тонкую/толстую калибровку первого слоя. В общем случае оставьте ноль';
 			values['table.delta.title'] = 'Начало координат в центре стола';
-			values['table.delta.description'] = 'Для декартовых принтеров должно быть выключено, для дельт включено. На данный момент работа этого режима не протестирована';
+			values['table.delta.description'] = 'Для декартовых принтеров должно быть выключено, для дельт включено';
 			values['table.bed_probe.title'] = 'Автокалибровка стола';
 			values['table.bed_probe.description'] = 'Надо ли делать автокалибровку стола перед печатью (G29)? Если у вас нет датчика автокалибровки, то оставляйте выключенным';
 			values['table.hotend_temp.title'] = 'Температура хотэнда';

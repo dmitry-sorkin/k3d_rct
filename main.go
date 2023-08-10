@@ -406,8 +406,8 @@ func check(showErrorBox bool, allowModify bool) bool {
 
 	hardmode = doc.Call("getElementById", "hardmode").Get("checked").Bool()
 
-	startGcode = doc.Call("getElementById", "startGcode").Get("innerHTML").String()
-	endGcode = doc.Call("getElementById", "endGcode").Get("innerHTML").String()
+	startGcode = doc.Call("getElementById", "startGcode").Get("value").String()
+	endGcode = doc.Call("getElementById", "endGcode").Get("value").String()
 
 	if !showErrorBox {
 		return !retErr
