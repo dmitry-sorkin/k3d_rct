@@ -1,6 +1,6 @@
 # K3D Retraction calibration towers generator
 
-Простой генератор башенок для калибровки откатов, написанный на golang. Хостится [>тут<](https://k3d.tech/calibrations/retractions/rct.html?lang=ru). 
+Простой генератор башенок для калибровки откатов, написанный на golang. Хостится [>тут<](https://k3d.tech/calibrations/retractions/calibrator/?lang=ru). 
 Автор не является профессиональным программистом. Код ужасен. При чтении кода остерегайтесь психологических травм.
 
 # Сборка
