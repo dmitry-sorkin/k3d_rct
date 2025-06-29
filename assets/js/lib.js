@@ -526,9 +526,8 @@ function initLang(key) {
 		var item = el[i];
 		item.innerHTML = window.lang.getString(item.id);
 	}
-	document.getElementsByClassName('generate-button')[0].innerHTML = window.lang.getString('generator.generate_and_download');
-	document.getElementsByClassName('reset-button')[0].innerHTML = window.lang.getString('generator.reset_to_default');
-	document.getElementsByClassName('navbar-direction')[0].innerHTML = window.lang.getString('navbar.back');
+	document.getElementById('generateButton').innerHTML = window.lang.getString('generator.generate_and_download');
+	document.getElementById('resetButton').innerHTML = window.lang.getString('generator.reset_to_default');
 	document.getElementById('generateButtonLoading').innerHTML = window.lang.getString('generator.generate_button_loading');
 }
 
