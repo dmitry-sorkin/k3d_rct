@@ -1,6 +1,6 @@
 # K3D Retraction calibration towers generator
 
-Simple retraction towers generator for retraction calibration written in golang. Hosted [>here<](https://k3d.tech/calibrations/retractions/rct.html?lang=en). 
+Simple retraction towers generator for retraction calibration written in golang. Hosted [>here<](https://k3d.tech/calibrations/retractions/calibrator/?lang=en). 
 The author is not a professional programmer. The code is terrible. When reading the code, avoid psychological trauma.
 
 # Building
